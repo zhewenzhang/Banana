@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta charset="utf-8"/>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Space+Grotesk%3Awght%40400%3B500%3B700" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<title>Stitch Design</title>
+<link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style type="text/tailwindcss">
+      :root {
+        --primary-color: #1717cf;
+        --secondary-color: #3d3d6b;
+        --background-color: #12121e;
+        --text-primary: #ffffff;
+        --text-secondary: #a0a0d0;
+      }
+      .group:focus-within .group-focus-within\:flex {
+        display: flex;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-[var(--background-color)]" style='font-family: "Space Grotesk", "Noto Sans", sans-serif;'>
+<div class="relative flex size-full min-h-screen flex-col justify-between group/design-root">
+<div class="flex-grow">
+<header class="sticky top-0 z-10 bg-[var(--background-color)] bg-opacity-80 backdrop-blur-sm p-4">
+<h1 class="text-[var(--text-primary)] text-2xl font-bold text-center">Search</h1>
+</header>
+<main class="p-4 space-y-8">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]"> search </span>
+<input class="form-input w-full rounded-md border-none bg-[var(--secondary-color)] bg-opacity-50 py-3 pl-10 pr-10 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:ring-2 focus:ring-[var(--primary-color)]" placeholder="Search for records, artists, or genres" type="text"/>
+<button class="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] hidden group-focus-within:flex items-center justify-center">
+<span class="material-symbols-outlined"> close </span>
+</button>
+</div>
+<section>
+<h2 class="text-[var(--text-primary)] text-xl font-bold leading-tight mb-4">Trending Records</h2>
+<div class="flex overflow-x-auto [-ms-scrollbar-style:none] [scrollbar-width:none] [&amp;::-webkit-scrollbar]:hidden -mx-4 px-4">
+<div class="flex items-start gap-4">
+<div class="flex flex-col gap-2 w-36">
+<div class="w-full aspect-square bg-cover bg-center rounded-md" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDAet2JfK8LXN03CmGuqZVj0UjHXbIYhJqQmmgmh3bjJ8SrXLg7Pmo3XiY1IMLF4cYosQdFkLMdey3kTlXmIfKMWMfZIvXcHmUCGtZCmUvsuGuYYKkHXiqN9xBIdLTSqXV5-FotcFi44khMtVRBpSC52aTXWrNbJwpxCN1jECk_BRWHMO27RqrpZW3BovL73j-KqLwxOg7j7peWzUb7PILwjQz49FKIAp89OJpXx_-2OX6hG1oYbHESksVt8yafOy8y08gpxctWc0I");'></div>
+<div>
+<h3 class="text-[var(--text-primary)] font-semibold leading-tight">To Pimp a Butterfly</h3>
+<p class="text-[var(--text-secondary)] text-sm">Kendrick Lamar</p>
+</div>
+</div>
+<div class="flex flex-col gap-2 w-36">
+<div class="w-full aspect-square bg-cover bg-center rounded-md" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBn58RZcdfGNQ0umiuIjmnQJUszLOuOZahK5bglBh0rRgQKQwB0zQyJj98K5d0vMElQ0dsC0LFegh8PsTR6nHVozhzIVKAGvwA7GJztwo_nsU5w1MjnjFXxFOhKaALTCsuIFSvYYmK4hKa9d5DHYotPvhaOWQtBQU1sDOhH57RkyvpvCMFlqMhKad5pfSxxIX9g-JnstyMbdCJjk9JC1B9jyeTapvSs0UiRbTZOsHe-DkjNVgupEjfHKBo7XxAisfCPk1LjEM4FsG0");'></div>
+<div>
+<h3 class="text-[var(--text-primary)] font-semibold leading-tight">Is This It</h3>
+<p class="text-[var(--text-secondary)] text-sm">The Strokes</p>
+</div>
+</div>
+<div class="flex flex-col gap-2 w-36">
+<div class="w-full aspect-square bg-cover bg-center rounded-md" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDEs1Rr0JPEiuFCOrDN4D6zYVm4nn7ZYsI4npm_HeCoT0gwZGK8-Si-ePV3BRjBQAveEpoHNjJSY04O71dT677kOlcbcBGDPto8sHYpZjEsbegjh-XyXN0PFc-YhTFUmVHdlHKLHXZm7kUd-MU2eW7j1M5uWAOkVxx3H1FxmIyPQA2f-Nl93ezjbqV1FOed0viHd3hDh5_0Qq6ygxBBuCEf1kVvUMgbtxlR7UGTe9m3dwNtTloVeHS_ZGcNeyN_CCDVyQ_gIlU5Ds0");'></div>
+<div>
+<h3 class="text-[var(--text-primary)] font-semibold leading-tight">Discovery</h3>
+<p class="text-[var(--text-secondary)] text-sm">Daft Punk</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section>
+<h2 class="text-[var(--text-primary)] text-xl font-bold leading-tight mb-4">Popular Artists</h2>
+<div class="flex overflow-x-auto [-ms-scrollbar-style:none] [scrollbar-width:none] [&amp;::-webkit-scrollbar]:hidden -mx-4 px-4">
+<div class="flex items-start gap-6">
+<div class="flex flex-col items-center gap-3 w-28">
+<div class="w-28 h-28 bg-cover bg-center rounded-full" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCi5-XJKKDPfhWcaRAR3L3BSL8jW3cxG4_ciRsvXuyaDDO96xM3gI_Xp9w9U27YNAED7ZzDtSLyCb5BUyka6moK0WMAbhWSRh0-6xgmU55kszfWjM13eSSuNxXE5tgadT0ebg7AWqI8KL9DW_n95_PFqYw_xTn0D5T16I0Khv8oGCm0MG2iRp5k-6imjiIwVyKgeETXnill37XleUutzvg25ObZkekbwM34XITGFPuJksJsvcUSOrAh-P6MaYRoe8NY1QTDFiZ_VcA");'></div>
+<p class="text-[var(--text-primary)] text-center font-medium leading-tight">Kendrick Lamar</p>
+</div>
+<div class="flex flex-col items-center gap-3 w-28">
+<div class="w-28 h-28 bg-cover bg-center rounded-full" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB60qY0mwySmXHhZ3b2qS9ncHVVolL65ptxunSwcZgRVGJQVPURfsokF3ORuex5ONVxFulKgosLdVB1jOK4fp97ViaWygZVx5G6wx6D_igSe1xXnauh0xNHo8B9NAvG9GJvziwYBskUih5eJezk2swbzPkzmW7fB44-LkFvXPbltZ12ofdzIxArBMKqUUa5I9T47URa8uzJL5GziWxF6CeBZNUPesLPTFxTk9-UuwwaBPMcU8iU1NShTC_emGCu1m6bKDYf1PugseM");'></div>
+<p class="text-[var(--text-primary)] text-center font-medium leading-tight">The Strokes</p>
+</div>
+<div class="flex flex-col items-center gap-3 w-28">
+<div class="w-28 h-28 bg-cover bg-center rounded-full" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA2MSHItzeERnZWA-8zC7DNd6HueQB5kXG9aNLAMd4cEmcNPe1yOGhC4Ow3Cxw1zGFzXVYoZ4G2bV6l4YGE7ScglYLPB2BPS-DLzddxDHNAH3-Y0F0WI85BmXg7XzJRsqUnJQBCQIE3_d7xw-VD_CbCgLsig4e5SnS7BNI4zrbNRylGL8Cp1523qkxk2RQRerXfgbKQJdNbUiAsfIQVu3EkD9OHvVt5qyGa9ovAoaol5UZoJVq2gs6OF6k-DWDz84lZaXHk--3tlrc");'></div>
+<p class="text-[var(--text-primary)] text-center font-medium leading-tight">Daft Punk</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+</div>
+<footer class="sticky bottom-0 z-10">
+<div class="bg-[var(--background-color)] bg-opacity-80 backdrop-blur-sm border-t border-[var(--secondary-color)] border-opacity-50">
+<nav class="flex justify-around items-center px-4 pt-2 pb-4">
+<a class="flex flex-col items-center gap-1 text-[var(--primary-color)]" href="#">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1">search</span>
+<p class="text-xs font-medium tracking-wide">Search</p>
+</a>
+<a class="flex flex-col items-center gap-1 text-[var(--text-secondary)]" href="#">
+<span class="material-symbols-outlined text-2xl">grid_view</span>
+<p class="text-xs font-medium tracking-wide">Record Wall</p>
+</a>
+<a class="flex flex-col items-center gap-1 text-[var(--text-secondary)]" href="#">
+<span class="material-symbols-outlined text-2xl">history</span>
+<p class="text-xs font-medium tracking-wide">Time Machine</p>
+</a>
+<a class="flex flex-col items-center gap-1 text-[var(--text-secondary)]" href="#">
+<span class="material-symbols-outlined text-2xl">person</span>
+<p class="text-xs font-medium tracking-wide">Profile</p>
+</a>
+</nav>
+</div>
+</footer>
+</div>
+
+</body></html>

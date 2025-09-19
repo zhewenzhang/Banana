@@ -1,0 +1,11 @@
+{
+  "src": [
+    "pages/Index",
+    "pages/Search",
+    "pages/SearchResults",
+    "pages/RecordDetail",
+    "pages/RecordWall",
+    "pages/TimeMachine",
+    "pages/Profile"
+  ]
+}

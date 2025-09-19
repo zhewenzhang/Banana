@@ -1,0 +1,56 @@
+{
+  "app": {
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "C:\\Users\\zhewe\\.ohos\\config\\default_Banana_RvazpkI-dg5B3kzSpGN2HluTyd6tHIs8nEesnrNCoVU=.cer",
+          "keyAlias": "debugKey",
+          "keyPassword": "00000019BE9A82032F8571C7814879E7F6FDCDF9BC14F1304E314E63893073A90AC92BFC2B54DA2DDE",
+          "profile": "C:\\Users\\zhewe\\.ohos\\config\\default_Banana_RvazpkI-dg5B3kzSpGN2HluTyd6tHIs8nEesnrNCoVU=.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "C:\\Users\\zhewe\\.ohos\\config\\default_Banana_RvazpkI-dg5B3kzSpGN2HluTyd6tHIs8nEesnrNCoVU=.p12",
+          "storePassword": "00000019AEEDE586D5942A064434EF52B03E45CCFB9CAA1553781AE33471723EEA0130FF54CF8AA18E"
+        }
+      }
+    ],
+    "products": [
+      {
+        "name": "default",
+        "signingConfig": "default",
+        "targetSdkVersion": "5.0.5(17)",
+        "compatibleSdkVersion": "5.0.5(17)",
+        "runtimeOS": "HarmonyOS",
+        "buildOption": {
+          "strictMode": {
+            "caseSensitiveCheck": true,
+            "useNormalizedOHMUrl": true
+          }
+        }
+      }
+    ],
+    "buildModeSet": [
+      {
+        "name": "debug",
+      },
+      {
+        "name": "release"
+      }
+    ]
+  },
+  "modules": [
+    {
+      "name": "entry",
+      "srcPath": "./entry",
+      "targets": [
+        {
+          "name": "default",
+          "applyToProducts": [
+            "default"
+          ]
+        }
+      ]
+    }
+  ]
+}

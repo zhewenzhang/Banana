@@ -1,0 +1,7 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="120" height="120" rx="8" fill="#E0E0E0"/>
+<circle cx="60" cy="60" r="35" fill="#BDBDBD"/>
+<circle cx="60" cy="60" r="8" fill="#E0E0E0"/>
+<path d="M30 30h60v60H30z" stroke="#9E9E9E" stroke-width="2" fill="none" stroke-dasharray="4,4"/>
+<text x="60" y="100" text-anchor="middle" font-family="Arial" font-size="10" fill="#757575">Album</text>
+</svg>
