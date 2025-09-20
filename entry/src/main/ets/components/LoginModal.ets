@@ -13,6 +13,9 @@ export struct LoginModal {
   @State isLoading: boolean = false;
   @State errorMessage: string = '';
 
+  // 初始模式设置（可从外部传入）
+  initialMode?: boolean = true; // true: 登錄, false: 註冊
+
   // AuthService 實例
   private authService: AuthService = AuthService.getInstance();
 
@@ -30,8 +33,14 @@ export struct LoginModal {
   onLoginSuccess?: (userData: UserData) => void;
 
   // 顯示彈窗
-  show() {
+  show(mode?: boolean) {
     this.isVisible = true;
+    // 如果传入了模式参数，使用传入的模式；否则使用initialMode或默认值
+    if (mode !== undefined) {
+      this.isLogin = mode;
+    } else if (this.initialMode !== undefined) {
+      this.isLogin = this.initialMode;
+    }
   }
 
   // 隱藏彈窗
@@ -51,6 +60,7 @@ export struct LoginModal {
     this.confirmPassword = '';
     this.isLoading = false;
     this.errorMessage = '';
+    // 重置时不改变模式，保持当前设置的模式
   }
 
   // 切換登錄/註冊模式
@@ -59,11 +69,18 @@ export struct LoginModal {
     this.resetForm();
   }
 
+  // 组件初始化时设置模式
+  aboutToAppear() {
+    if (this.initialMode !== undefined) {
+      this.isLogin = this.initialMode;
+    }
+  }
+
   // 處理登錄
   private async handleLogin() {
     // 基本驗證
     if (!this.email || !this.password) {
-      this.errorMessage = '請填寫完整信息';
+      this.errorMessage = '请填写完整信息';
       return;
     }
 
@@ -79,7 +96,7 @@ export struct LoginModal {
       const response: AuthResponse = await this.authService.login(loginRequest);
 
       if (response.success && response.user) {
-        console.log('登錄成功:', response.message);
+        console.log('登录成功:', response.message);
         
         if (this.onLoginSuccess) {
           this.onLoginSuccess(response.user);
@@ -87,11 +104,11 @@ export struct LoginModal {
         
         this.hide();
       } else {
-        this.errorMessage = response.message || '登錄失敗';
+        this.errorMessage = response.message || '登录失败';
       }
     } catch (error) {
-      console.error('登錄錯誤:', error);
-      this.errorMessage = '登錄過程中發生錯誤';
+      console.error('登录错误:', error);
+      this.errorMessage = '登录过程发生错误';
     } finally {
       this.isLoading = false;
     }
@@ -101,19 +118,19 @@ export struct LoginModal {
   private async handleRegister() {
     // 基本驗證
     if (!this.username || !this.email || !this.password || !this.confirmPassword) {
-      this.errorMessage = '請填寫完整信息';
+      this.errorMessage = '请填写完整信息';
       return;
     }
 
     if (this.password !== this.confirmPassword) {
-      this.errorMessage = '密碼不一致';
+      this.errorMessage = '密码不一致';
       return;
     }
 
     // 簡單的郵箱格式驗證
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(this.email)) {
-      this.errorMessage = '請輸入有效的郵箱地址';
+      this.errorMessage = '请输入有效的邮箱';
       return;
     }
 
@@ -130,7 +147,7 @@ export struct LoginModal {
       const response: AuthResponse = await this.authService.register(registerRequest);
 
       if (response.success && response.user) {
-        console.log('註冊成功:', response.message);
+        console.log('注册成功:', response.message);
         
         if (this.onLoginSuccess) {
           this.onLoginSuccess(response.user);
@@ -138,11 +155,11 @@ export struct LoginModal {
         
         this.hide();
       } else {
-        this.errorMessage = response.message || '註冊失敗';
+        this.errorMessage = response.message || '注册失败';
       }
     } catch (error) {
-      console.error('註冊錯誤:', error);
-      this.errorMessage = '註冊過程中發生錯誤';
+      console.error('注册错误:', error);
+      this.errorMessage = '注册过程发生错误';
     } finally {
       this.isLoading = false;
     }
@@ -164,7 +181,7 @@ export struct LoginModal {
         Column({ space: 24 }) {
           // 標題區域
           Row() {
-            Text(this.isLogin ? '登錄' : '註冊')
+            Text(this.isLogin ? '登录' : '注册')
               .fontSize(24)
               .fontWeight(FontWeight.Bold)
               .fontColor(this.textPrimary)
@@ -188,12 +205,12 @@ export struct LoginModal {
             // 用戶名輸入（登錄模式）或郵箱輸入（註冊模式）
             if (this.isLogin) {
               Column({ space: 8 }) {
-                Text('郵箱')
+                Text('邮箱')
                   .fontSize(14)
                   .fontColor(this.textSecondary)
                   .width('100%')
 
-                TextInput({ placeholder: '請輸入郵箱地址' })
+                TextInput({ placeholder: '请输入邮箱地址' })
                   .width('100%')
                   .height(48)
                   .fontSize(16)
@@ -209,12 +226,12 @@ export struct LoginModal {
               }
             } else {
               Column({ space: 8 }) {
-                Text('用戶名')
+                Text('用户名')
                   .fontSize(14)
                   .fontColor(this.textSecondary)
                   .width('100%')
 
-                TextInput({ placeholder: '請輸入用戶名' })
+                TextInput({ placeholder: '请输入用户名' })
                   .width('100%')
                   .height(48)
                   .fontSize(16)
@@ -232,12 +249,12 @@ export struct LoginModal {
             // 註冊模式下顯示郵箱輸入
             if (!this.isLogin) {
               Column({ space: 8 }) {
-                Text('郵箱')
+                Text('邮箱')
                   .fontSize(14)
                   .fontColor(this.textSecondary)
                   .width('100%')
 
-                TextInput({ placeholder: '請輸入郵箱地址' })
+                TextInput({ placeholder: '请输入邮箱地址' })
                   .width('100%')
                   .height(48)
                   .fontSize(16)
@@ -255,12 +272,12 @@ export struct LoginModal {
 
             // 密碼輸入
             Column({ space: 8 }) {
-              Text('密碼')
+              Text('密码')
                 .fontSize(14)
                 .fontColor(this.textSecondary)
                 .width('100%')
 
-              TextInput({ placeholder: '請輸入密碼' })
+              TextInput({ placeholder: '请输入密码' })
                 .width('100%')
                 .height(48)
                 .fontSize(16)
@@ -278,12 +295,12 @@ export struct LoginModal {
             // 註冊模式下顯示確認密碼
             if (!this.isLogin) {
               Column({ space: 8 }) {
-                Text('確認密碼')
+                Text('确认密码')
                   .fontSize(14)
                   .fontColor(this.textSecondary)
                   .width('100%')
 
-                TextInput({ placeholder: '請再次輸入密碼' })
+                TextInput({ placeholder: '请再次输入密码' })
                   .width('100%')
                   .height(48)
                   .fontSize(16)
@@ -313,7 +330,7 @@ export struct LoginModal {
           // 按鈕區域
           Column({ space: 12 }) {
             // 主要按鈕
-            Button(this.isLoading ? '處理中...' : (this.isLogin ? '登錄' : '註冊'))
+            Button(this.isLoading ? '处理中...' : (this.isLogin ? '登录' : '注册'))
               .width('100%')
               .height(48)
               .fontSize(16)
@@ -332,11 +349,11 @@ export struct LoginModal {
 
             // 切換模式按鈕
             Row({ space: 4 }) {
-              Text(this.isLogin ? '還沒有賬戶？' : '已有賬戶？')
+              Text(this.isLogin ? '还没有账户？' : '已有账户？')
                 .fontSize(14)
                 .fontColor(this.textSecondary)
 
-              Text(this.isLogin ? '立即註冊' : '立即登錄')
+              Text(this.isLogin ? '立即注册' : '立即登录')
                 .fontSize(14)
                 .fontColor(this.primaryColor)
                 .fontWeight(FontWeight.Medium)

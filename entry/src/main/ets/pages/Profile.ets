@@ -16,6 +16,7 @@ struct Profile {
   @State currentTab: number = 3; // Profile页面对应tab 3
   @State isLoggedIn: boolean = false; // 登錄狀態
   @State showLoginModal: boolean = false; // 登錄彈窗顯示狀態
+  @State loginModalMode: boolean = true; // 登錄彈窗模式：true=登錄，false=註冊
 
   // 颜色主题
   private primaryColor: string = '#FFFFFF';
@@ -102,20 +103,8 @@ struct Profile {
   // 構建未登錄狀態的提示頁面
   @Builder
   LoginPromptContent() {
-    Column({ space: 32 }) {
-      // 登錄提示圖標
-      Row() {
-        Image($r('app.media.person'))
-          .width(80)
-          .height(80)
-          .fillColor(this.textSecondary + '60')
-      }
-      .width(120)
-      .height(120)
-      .backgroundColor(this.cardBgColor + '40')
-      .borderRadius(60)
-      .justifyContent(FlexAlign.Center)
 
+    Column({ space: 32 }) {
       // 提示文字
       Column({ space: 12 }) {
         Text('一起享受胶片吧')
@@ -123,6 +112,7 @@ struct Profile {
           .fontWeight(FontWeight.Bold)
           .fontColor(this.textPrimary)
           .textAlign(TextAlign.Center)
+          .margin({ top: 40 })
 
         Text('登录后可以收藏和交流唱片信息\n小众爱好的小天地')
           .fontSize(16)
@@ -142,6 +132,7 @@ struct Profile {
           .backgroundColor(this.secondaryColor)
           .borderRadius(8)
           .onClick(() => {
+            this.loginModalMode = true; // 设置为登录模式
             this.showLoginModal = true;
           })
 
@@ -155,6 +146,7 @@ struct Profile {
           .border({ width: 1, color: this.primaryColor })
           .borderRadius(8)
           .onClick(() => {
+            this.loginModalMode = false; // 设置为注册模式
             this.showLoginModal = true;
           })
       }
@@ -172,28 +164,6 @@ struct Profile {
     Column({ space: 24 }) {
       // 用户信息区域
       Column({ space: 16 }) {
-        // 头像
-        if (this.isValidImageUrl(this.userData?.avatar)) {
-          Image(this.userData?.avatar || '')
-            .width(128)
-            .height(128)
-            .borderRadius(64)
-            .objectFit(ImageFit.Cover)
-        } else {
-          // 渐变色头像占位符
-          Row() {}
-            .width(128)
-            .height(128)
-            .borderRadius(64)
-            .linearGradient({
-              angle: 135,
-              colors: [
-                [this.getGradientColors(0)[0], 0.0],
-                [this.getGradientColors(0)[1], 1.0]
-              ]
-            })
-        }
-
         // 用户信息
         Column({ space: 4 }) {
           Text(this.userData?.name || '')
@@ -506,6 +476,7 @@ struct Profile {
       if (this.showLoginModal) {
         LoginModal({
           isVisible: this.showLoginModal,
+          initialMode: this.loginModalMode, // 传入初始模式
           onClose: () => {
             this.showLoginModal = false;
           },
