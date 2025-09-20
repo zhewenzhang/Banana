@@ -73,6 +73,7 @@ struct RecordDetail {
   @State isLoading: boolean = false;
   @State currentTab: number = 0;
   @State selectedImageIndex: number = 0;
+  @State isFavorite: boolean = false; // 收藏状态
 
   // 顏色主題
   private primaryColor: string = '#FFFFFF';
@@ -300,6 +301,13 @@ struct RecordDetail {
     router.back();
   }
 
+  // 切换收藏状态
+  private toggleFavorite() {
+    this.isFavorite = !this.isFavorite;
+    // TODO: 这里可以添加实际的收藏逻辑，比如调用API保存到服务器
+    console.log(`唱片 ${this.recordDetail?.title} 收藏状态: ${this.isFavorite}`);
+  }
+
   // 格式化發行日期
   private formatReleaseDate(dateStr?: string): string {
     if (!dateStr) return '';
@@ -423,6 +431,31 @@ struct RecordDetail {
                 }
               }
               .width('100%')
+
+              // 收藏按钮
+              Button() {
+                Row({ space: 8 }) {
+                  Image($r('app.media.ic_favorite'))
+                    .width(20)
+                    .height(20)
+                    .fillColor(this.isFavorite ? '#ff4757' : this.textSecondary)
+                  
+                  Text(this.isFavorite ? '已收藏' : '收藏')
+                    .fontSize(16)
+                    .fontColor(this.isFavorite ? '#ff4757' : this.textPrimary)
+                }
+              }
+              .width(120)
+              .height(40)
+              .backgroundColor(this.isFavorite ? 'rgba(255, 71, 87, 0.1)' : this.cardBgColor)
+              .borderRadius(20)
+              .border({
+                width: 1,
+                color: this.isFavorite ? '#ff4757' : this.textSecondary
+              })
+              .onClick(() => {
+                this.toggleFavorite();
+              })
             }
             .width('100%')
             .alignItems(HorizontalAlign.Center)

@@ -32,6 +32,14 @@ export struct LoginModal {
   onClose?: () => void;
   onLoginSuccess?: (userData: UserData) => void;
 
+  // 组件初始化时设置模式
+  aboutToAppear() {
+    // 根据传入的initialMode设置isLogin状态
+    if (this.initialMode !== undefined) {
+      this.isLogin = this.initialMode;
+    }
+  }
+
   // 顯示彈窗
   show(mode?: boolean) {
     this.isVisible = true;
@@ -60,20 +68,12 @@ export struct LoginModal {
     this.confirmPassword = '';
     this.isLoading = false;
     this.errorMessage = '';
-    // 重置时不改变模式，保持当前设置的模式
   }
 
   // 切換登錄/註冊模式
   private toggleMode() {
     this.isLogin = !this.isLogin;
     this.resetForm();
-  }
-
-  // 组件初始化时设置模式
-  aboutToAppear() {
-    if (this.initialMode !== undefined) {
-      this.isLogin = this.initialMode;
-    }
   }
 
   // 處理登錄

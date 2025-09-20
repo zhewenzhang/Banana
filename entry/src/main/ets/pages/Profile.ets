@@ -112,7 +112,6 @@ struct Profile {
           .fontWeight(FontWeight.Bold)
           .fontColor(this.textPrimary)
           .textAlign(TextAlign.Center)
-          .margin({ top: 40 })
 
         Text('登录后可以收藏和交流唱片信息\n小众爱好的小天地')
           .fontSize(16)
