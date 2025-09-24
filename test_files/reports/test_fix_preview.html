@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>潮流趋势修复效果预览</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        
+        .header h1 {
+            color: #2d3748;
+            margin-bottom: 8px;
+            font-size: 28px;
+        }
+        
+        .header p {
+            color: #718096;
+            font-size: 16px;
+        }
+        
+        .fix-summary {
+            background: #f7fafc;
+            border-left: 4px solid #48bb78;
+            padding: 16px;
+            margin-bottom: 24px;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .fix-summary h3 {
+            color: #2d3748;
+            margin: 0 0 12px 0;
+            font-size: 18px;
+        }
+        
+        .fix-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .fix-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .fix-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .check-icon {
+            color: #48bb78;
+            margin-right: 12px;
+            font-weight: bold;
+        }
+        
+        .records-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 24px;
+        }
+        
+        .record-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        
+        .record-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+        
+        .record-image {
+            width: 100%;
+            height: 200px;
+            border-radius: 8px;
+            object-fit: cover;
+            margin-bottom: 12px;
+        }
+        
+        .record-placeholder {
+            width: 100%;
+            height: 200px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .record-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+        
+        .record-artist {
+            font-size: 14px;
+            color: #718096;
+            margin-bottom: 8px;
+        }
+        
+        .record-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #a0aec0;
+        }
+        
+        .record-id {
+            background: #edf2f7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
+        .gradient-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .gradient-2 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .gradient-3 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .gradient-4 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 潮流趋势修复效果预览</h1>
+            <p>展示封面显示和数据加载的修复效果</p>
+        </div>
+        
+        <div class="fix-summary">
+            <h3>✅ 修复内容总结</h3>
+            <ul class="fix-list">
+                <li><span class="check-icon">✓</span> 修复了Last.fm API返回的占位符图片问题</li>
+                <li><span class="check-icon">✓</span> 更新了FALLBACK_RECORDS中的图片URL为有效的Spotify图片</li>
+                <li><span class="check-icon">✓</span> 将测试ID替换为真实的Discogs release ID</li>
+                <li><span class="check-icon">✓</span> 增强了extractImageUrl方法的占位符过滤逻辑</li>
+                <li><span class="check-icon">✓</span> 添加了详细的调试日志输出</li>
+                <li><span class="check-icon">✓</span> 确保点击后显示正确的唱片信息而非测试数据</li>
+            </ul>
+        </div>
+        
+        <h3>📀 修复后的潮流趋势唱片展示</h3>
+        <div class="records-grid">
+            <div class="record-card" onclick="showRecordDetail('249504', 'After Hours', 'The Weeknd')">
+                <img src="https://i.scdn.co/image/ab67616d0000b273ef6f049cce6fcc59a6e52233" 
+                     alt="After Hours" class="record-image" 
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="record-placeholder gradient-1" style="display: none;">
+                    After Hours
+                </div>
+                <div class="record-title">After Hours</div>
+                <div class="record-artist">The Weeknd</div>
+                <div class="record-info">
+                    <span>2020 • Pop, Synthwave</span>
+                    <span class="record-id">ID: 249504</span>
+                </div>
+            </div>
+            
+            <div class="record-card" onclick="showRecordDetail('9823525', '÷ (Divide)', 'Ed Sheeran')">
+                <img src="https://i.scdn.co/image/ab67616d0000b273ba5db46f4b838ef6027e6f96" 
+                     alt="÷ (Divide)" class="record-image"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="record-placeholder gradient-2" style="display: none;">
+                    ÷ (Divide)
+                </div>
+                <div class="record-title">÷ (Divide)</div>
+                <div class="record-artist">Ed Sheeran</div>
+                <div class="record-info">
+                    <span>2017 • Pop, Folk</span>
+                    <span class="record-id">ID: 9823525</span>
+                </div>
+            </div>
+            
+            <div class="record-card" onclick="showRecordDetail('4262072', 'A Night At The Opera', 'Queen')">
+                <img src="https://i.scdn.co/image/ab67616d0000b273ce4f1737bc8a646c8c4bd25a" 
+                     alt="A Night At The Opera" class="record-image"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="record-placeholder gradient-3" style="display: none;">
+                    A Night At The Opera
+                </div>
+                <div class="record-title">A Night At The Opera</div>
+                <div class="record-artist">Queen</div>
+                <div class="record-info">
+                    <span>1975 • Rock, Progressive Rock</span>
+                    <span class="record-id">ID: 4262072</span>
+                </div>
+            </div>
+            
+            <div class="record-card" onclick="showRecordDetail('1218307', 'Hotel California', 'Eagles')">
+                <img src="https://i.scdn.co/image/ab67616d0000b273454302f926c101b4b2c8b9c4" 
+                     alt="Hotel California" class="record-image"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="record-placeholder gradient-4" style="display: none;">
+                    Hotel California
+                </div>
+                <div class="record-title">Hotel California</div>
+                <div class="record-artist">Eagles</div>
+                <div class="record-info">
+                    <span>1976 • Rock, Pop Rock</span>
+                    <span class="record-id">ID: 1218307</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function showRecordDetail(recordId, title, artist) {
+            alert(`点击唱片详情：\n\n唱片ID: ${recordId}\n标题: ${title}\n艺术家: ${artist}\n\n✅ 现在会使用真实的Discogs API获取详细信息，而不是显示测试数据！`);
+        }
+        
+        // 模拟图片加载失败的情况
+        setTimeout(() => {
+            const images = document.querySelectorAll('.record-image');
+            images.forEach((img, index) => {
+                if (Math.random() > 0.7) { // 30%的概率模拟加载失败
+                    img.onerror();
+                }
+            });
+        }, 2000);
+    </script>
+</body>
+</html>

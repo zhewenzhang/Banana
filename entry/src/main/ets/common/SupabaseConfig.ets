@@ -1,8 +1,8 @@
 // Supabase 配置管理
 export class SupabaseConfig {
   // Supabase 項目配置
-  private static SUPABASE_URL: string = '';
-  private static SUPABASE_ANON_KEY: string = '';
+  private static SUPABASE_URL: string = 'https://uwvlduprxppwdkjkvwby.supabase.co';
+  private static SUPABASE_ANON_KEY: string = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV3dmxkdXByeHBwd2Rramt2d2J5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk5NDYxMTMsImV4cCI6MjA2NTUyMjExM30.IT_7wL-0Buf1iyGKI1cw2PY0GtlKFljFiNOVYBvA_o0';
   
   // 設置配置
   public static setConfig(url: string, anonKey: string): void {

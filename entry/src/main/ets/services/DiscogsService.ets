@@ -34,6 +34,72 @@ export class DiscogsService {
       return DiscogsService.getMockData();
     }
   }
+
+  // 獲取高價值唱片數據（用於價值排行榜）
+  public static async getValueRankingRecords(page: number = 1, perPage: number = 50): Promise<LocalRecord[]> {
+    try {
+      // 使用多個搜索策略來獲取高價值唱片，增加搜索范围以获取更多数据
+      const searchQueries = [
+        // 搜索經典高價值唱片 - 1960年代摇滚
+        `${DiscogsService.BASE_URL}/database/search?type=release&genre=Rock&decade=1960&sort=have&sort_order=desc&page=${page}&per_page=${Math.ceil(perPage/5)}`,
+        // 搜索限量版唱片
+        `${DiscogsService.BASE_URL}/database/search?type=release&format=Vinyl&sort=want&sort_order=desc&page=${page}&per_page=${Math.ceil(perPage/5)}`,
+        // 搜索收藏家喜愛的唱片
+        `${DiscogsService.BASE_URL}/database/search?type=release&sort=rating&sort_order=desc&page=${page}&per_page=${Math.ceil(perPage/5)}`,
+        // 搜索1970年代经典专辑
+        `${DiscogsService.BASE_URL}/database/search?type=release&genre=Rock&decade=1970&sort=have&sort_order=desc&page=${page}&per_page=${Math.ceil(perPage/5)}`,
+        // 搜索爵士经典专辑
+        `${DiscogsService.BASE_URL}/database/search?type=release&genre=Jazz&sort=want&sort_order=desc&page=${page}&per_page=${Math.ceil(perPage/5)}`
+      ];
+
+      const httpRequest = http.createHttp();
+      const allRecords: LocalRecord[] = [];
+
+      for (const url of searchQueries) {
+        try {
+          const response = await httpRequest.request(url, {
+            method: http.RequestMethod.GET,
+            header: ApiConfig.getDiscogsHeaders(),
+            connectTimeout: 10000,
+            readTimeout: 10000
+          });
+
+          if (response.responseCode === 200) {
+            const data: DiscogsResponse = JSON.parse(response.result as string);
+            const records = DiscogsService.transformToLocalRecords(data.results || []);
+            allRecords.push(...records);
+          }
+        } catch (queryError) {
+          console.error('單個查詢失敗:', queryError);
+        }
+      }
+
+      // 如果獲取到數據，返回去重後的結果
+      if (allRecords.length > 0) {
+        const uniqueRecords = DiscogsService.removeDuplicateRecords(allRecords);
+        return uniqueRecords.slice(0, perPage);
+      } else {
+        console.warn('所有API查詢都失敗，使用模擬高價值數據');
+        return DiscogsService.getMockValueRankingData();
+      }
+    } catch (error) {
+      console.error('獲取高價值唱片數據時發生錯誤:', error);
+      return DiscogsService.getMockValueRankingData();
+    }
+  }
+
+  // 去除重複唱片
+  private static removeDuplicateRecords(records: LocalRecord[]): LocalRecord[] {
+    const seen = new Set<string>();
+    return records.filter(record => {
+      const key = `${record.title}-${record.artist}`;
+      if (seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    });
+  }
   
   // 將 Discogs API 數據轉換為本地數據格式
   private static transformToLocalRecords(items: RecordItem[]): LocalRecord[] {
@@ -134,6 +200,57 @@ export class DiscogsService {
         coverImage: 'https://i.discogs.com/r300-/release/1109832-velvet-underground-nico.jpg',
         genre: 'Art Rock, Experimental',
         label: 'Verve'
+      }
+    ];
+  }
+
+  // 高價值唱片模擬數據（與TimeMachine.ets保持一致）
+  private static getMockValueRankingData(): LocalRecord[] {
+    return [
+      {
+        id: '1',
+        title: 'The Velvet Underground & Nico',
+        artist: 'The Velvet Underground & Nico',
+        year: '1967',
+        coverImage: 'https://i.discogs.com/r300-/release/1109832-velvet-underground-nico.jpg',
+        genre: 'Art Rock, Experimental',
+        label: 'Verve Records'
+      },
+      {
+        id: '2',
+        title: 'Led Zeppelin',
+        artist: 'Led Zeppelin',
+        year: '1969',
+        coverImage: 'https://i.discogs.com/r300-/release/1565832-led-zeppelin.jpg',
+        genre: 'Hard Rock, Blues Rock',
+        label: 'Atlantic Records'
+      },
+      {
+        id: '3',
+        title: 'Abbey Road',
+        artist: 'The Beatles',
+        year: '1969',
+        coverImage: 'https://i.discogs.com/r300-/release/10329784-abbey-road.jpg',
+        genre: 'Rock, Pop',
+        label: 'Apple Records'
+      },
+      {
+        id: '4',
+        title: 'Pet Sounds',
+        artist: 'The Beach Boys',
+        year: '1966',
+        coverImage: 'https://i.discogs.com/r300-/release/1234567-pet-sounds.jpg',
+        genre: 'Pop Rock, Psychedelic Pop',
+        label: 'Capitol Records'
+      },
+      {
+        id: '5',
+        title: 'Kind of Blue',
+        artist: 'Miles Davis',
+        year: '1959',
+        coverImage: 'https://i.discogs.com/r300-/release/987654-kind-of-blue.jpg',
+        genre: 'Jazz, Modal Jazz',
+        label: 'Columbia Records'
       }
     ];
   }

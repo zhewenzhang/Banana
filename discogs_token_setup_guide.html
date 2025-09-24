@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discogs API Token 配置指南</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        
+        h2 {
+            color: #34495e;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-top: 30px;
+        }
+        
+        .step-card {
+            background: #f8f9fa;
+            border-left: 5px solid #3498db;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            position: relative;
+        }
+        
+        .step-number {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            background: #3498db;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .success {
+            background: #d4edda;
+            border-left-color: #28a745;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            overflow-x: auto;
+            position: relative;
+        }
+        
+        .code-block::before {
+            content: 'ArkTS';
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            background: #4a5568;
+            color: #e2e8f0;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .highlight {
+            background: #ffeaa7;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        
+        .current-status {
+            background: #e3f2fd;
+            border: 1px solid #90caf9;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            margin: 10px 5px;
+            transition: background 0.3s;
+        }
+        
+        .btn:hover {
+            background: #2980b9;
+        }
+        
+        .btn-success {
+            background: #27ae60;
+        }
+        
+        .btn-success:hover {
+            background: #229954;
+        }
+        
+        .screenshot-placeholder {
+            background: #ecf0f1;
+            border: 2px dashed #bdc3c7;
+            padding: 40px;
+            text-align: center;
+            border-radius: 8px;
+            margin: 15px 0;
+            color: #7f8c8d;
+        }
+        
+        .icon {
+            margin-right: 8px;
+            font-size: 1.1em;
+        }
+        
+        ol {
+            padding-left: 0;
+        }
+        
+        ol li {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            list-style: none;
+            position: relative;
+            padding-left: 50px;
+        }
+        
+        ol li::before {
+            content: counter(step-counter);
+            counter-increment: step-counter;
+            position: absolute;
+            left: 15px;
+            top: 15px;
+            background: #3498db;
+            color: white;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        ol {
+            counter-reset: step-counter;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔑 Discogs API Token 配置指南</h1>
+        
+        <div class="current-status">
+            <h3><span class="icon">📊</span>当前配置状态</h3>
+            <p><strong>Token状态：</strong>已配置示例Token</p>
+            <p><strong>当前Token：</strong><code>NavEcjohrJttDkWwMzWNKEIRmyLsecfRSSWoCIVA</code></p>
+            <p><strong>建议：</strong>为了获取最佳体验，建议配置你自己的Discogs API Token</p>
+        </div>
+        
+        <h2>🎯 为什么需要配置Token？</h2>
+        <div class="step-card">
+            <ul>
+                <li><strong>数据丰富度：</strong>获取完整的专辑信息、曲目列表、发行详情</li>
+                <li><strong>数据准确性：</strong>来自Discogs官方数据库的权威信息</li>
+                <li><strong>覆盖范围：</strong>访问数百万张专辑的详细信息</li>
+                <li><strong>实时更新：</strong>获取最新的音乐发行信息</li>
+            </ul>
+        </div>
+        
+        <h2>📝 获取Token的详细步骤</h2>
+        
+        <ol>
+            <li>
+                <strong>访问Discogs开发者页面</strong><br>
+                <a href="https://www.discogs.com/settings/developers" target="_blank" class="btn">
+                    <span class="icon">🌐</span>打开Discogs开发者设置
+                </a>
+                <p>如果没有Discogs账号，需要先注册一个免费账号</p>
+            </li>
+            
+            <li>
+                <strong>创建新应用</strong><br>
+                点击 "Create an App" 按钮，填写以下信息：
+                <ul>
+                    <li><strong>App Name:</strong> BananaRecordApp（或你喜欢的名称）</li>
+                    <li><strong>Description:</strong> 音乐唱片浏览应用</li>
+                    <li><strong>Website URL:</strong> http://localhost:8080（开发用）</li>
+                </ul>
+            </li>
+            
+            <li>
+                <strong>生成Personal Access Token</strong><br>
+                在应用详情页面，找到 "Generate new token" 按钮并点击
+                <div class="screenshot-placeholder">
+                    📸 这里会显示你的Personal Access Token<br>
+                    格式类似：AbCdEfGhIjKlMnOpQrStUvWxYz1234567890
+                </div>
+            </li>
+            
+            <li>
+                <strong>复制Token</strong><br>
+                <div class="warning">
+                    <span class="icon">⚠️</span>
+                    <strong>重要：</strong>Token只会显示一次，请立即复制并保存！
+                </div>
+            </li>
+        </ol>
+        
+        <h2>⚙️ 配置Token到应用</h2>
+        
+        <div class="step-card">
+            <div class="step-number">1</div>
+            <strong>打开配置文件</strong><br>
+            找到文件：<code>entry/src/main/ets/common/ApiConfig.ets</code>
+        </div>
+        
+        <div class="step-card">
+            <div class="step-number">2</div>
+            <strong>修改Token配置</strong><br>
+            找到第9行，将你的Token替换示例Token：
+            <div class="code-block">
+// 修改前
+private static DISCOGS_TOKEN = 'NavEcjohrJttDkWwMzWNKEIRmyLsecfRSSWoCIVA';
+
+// 修改后（替换为你的Token）
+private static DISCOGS_TOKEN = '你的_Discogs_Token_在这里';
+            </div>
+        </div>
+        
+        <div class="step-card">
+            <div class="step-number">3</div>
+            <strong>保存并重新编译</strong><br>
+            保存文件后，重新编译应用即可生效
+        </div>
+        
+        <h2>🧪 验证配置是否成功</h2>
+        
+        <div class="success">
+            <h4><span class="icon">✅</span>配置成功的标志</h4>
+            <ul>
+                <li>点击唱片时能看到详细的专辑信息</li>
+                <li>控制台显示 "✅ 成功从Discogs API获取唱片详情"</li>
+                <li>唱片详情页显示完整的曲目列表和发行信息</li>
+            </ul>
+        </div>
+        
+        <div class="warning">
+            <h4><span class="icon">⚠️</span>常见问题</h4>
+            <ul>
+                <li><strong>Token无效：</strong>检查Token是否完整复制，没有多余空格</li>
+                <li><strong>网络错误：</strong>确保网络连接正常，可以访问Discogs API</li>
+                <li><strong>配额限制：</strong>Discogs API有请求频率限制，过于频繁请求可能被限制</li>
+            </ul>
+        </div>
+        
+        <h2>🔒 安全提醒</h2>
+        
+        <div class="step-card warning">
+            <ul>
+                <li><strong>不要分享Token：</strong>Token是你的个人凭证，不要在公开场合分享</li>
+                <li><strong>定期更新：</strong>如果Token泄露，及时在Discogs后台重新生成</li>
+                <li><strong>本地开发：</strong>当前配置仅用于本地开发，生产环境需要额外的安全措施</li>
+            </ul>
+        </div>
+        
+        <div class="success">
+            <h3><span class="icon">🎉</span>配置完成！</h3>
+            <p>配置完成后，你的应用就能获取真实的Discogs音乐数据了。享受探索音乐世界的乐趣吧！</p>
+            <a href="http://localhost:8080/test_api_status.html" class="btn btn-success">
+                <span class="icon">📊</span>查看API状态
+            </a>
+        </div>
+    </div>
+</body>
+</html>

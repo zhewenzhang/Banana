@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>潮流趋势 API 测试页面</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .controls {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            min-width: 150px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(45deg, #43e97b, #38f9d7);
+            color: white;
+        }
+        
+        .btn-warning {
+            background: linear-gradient(45deg, #fa709a, #fee140);
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .results {
+            padding: 30px;
+        }
+        
+        .api-section {
+            margin-bottom: 40px;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .api-header {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .api-title {
+            margin: 0;
+            color: #495057;
+            font-size: 1.3em;
+        }
+        
+        .api-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-loading {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .api-content {
+            padding: 20px;
+        }
+        
+        .record-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .record-card {
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            background: #fff;
+            transition: transform 0.2s ease;
+        }
+        
+        .record-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .record-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+        }
+        
+        .record-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        .record-artist {
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .record-meta {
+            font-size: 0.9em;
+            color: #888;
+        }
+        
+        .json-viewer {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 潮流趋势 API 测试</h1>
+            <p>测试不同数据源的API响应和数据质量</p>
+        </div>
+        
+        <div class="controls">
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="testDiscogsAPI()">
+                    🎸 测试 Discogs API
+                </button>
+                <button class="btn btn-secondary" onclick="testLastFmAPI()">
+                    🎧 测试 Last.fm API
+                </button>
+                <button class="btn btn-warning" onclick="testFallbackData()">
+                    💾 测试备用数据
+                </button>
+                <button class="btn btn-primary" onclick="testAllAPIs()">
+                    🚀 测试所有数据源
+                </button>
+            </div>
+        </div>
+        
+        <div class="results" id="results">
+            <div class="stats" id="stats" style="display: none;">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalRecords">0</div>
+                    <div class="stat-label">总记录数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="successfulAPIs">0</div>
+                    <div class="stat-label">成功的API</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="avgResponseTime">0ms</div>
+                    <div class="stat-label">平均响应时间</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="dataQuality">0%</div>
+                    <div class="stat-label">数据完整度</div>
+                </div>
+            </div>
+            
+            <p style="text-align: center; color: #666; font-size: 1.1em; margin: 40px 0;">
+                点击上方按钮开始测试 API 数据获取功能
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // 模拟 MusicApiService 的功能
+        class APITester {
+            constructor() {
+                this.DISCOGS_BASE_URL = 'https://api.discogs.com';
+                this.LASTFM_BASE_URL = 'https://ws.audioscrobble.com/2.0/';
+                this.results = {};
+                this.stats = {
+                    totalRecords: 0,
+                    successfulAPIs: 0,
+                    totalResponseTime: 0,
+                    apiCount: 0,
+                    dataQuality: 0
+                };
+            }
+
+            async testDiscogsAPI() {
+                const startTime = Date.now();
+                try {
+                    // 模拟 Discogs API 调用
+                    const params = {
+                        q: 'trending music 2024',
+                        type: 'release',
+                        sort: 'want,desc',
+                        per_page: '20'
+                    };
+                    
+                    const queryString = Object.keys(params)
+                        .map(key => `${key}=${encodeURIComponent(params[key])}`)
+                        .join('&');
+                    
+                    const url = `${this.DISCOGS_BASE_URL}/database/search?${queryString}`;
+                    
+                    // 由于跨域限制，这里模拟响应数据
+                    const mockResponse = {
+                        results: [
+                            {
+                                id: 123456,
+                                title: "Taylor Swift - Midnights",
+                                year: 2024,
+                                cover_image: "https://i.discogs.com/r300-/release/24755573-taylor-swift-midnights.jpg",
+                                thumb: "https://i.discogs.com/150x150/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI0NzU1/NTczLTE2NjY4MzI4/NzMtNzI4Ni5qcGVn.jpeg",
+                                community: { want: 15420, have: 8930 },
+                                format: ["Vinyl", "LP"],
+                                genre: ["Pop", "Alternative"]
+                            },
+                            {
+                                id: 789012,
+                                title: "The Weeknd - After Hours",
+                                year: 2024,
+                                cover_image: "https://i.discogs.com/r300-/release/15043464-the-weeknd-after-hours.jpg",
+                                thumb: "https://i.discogs.com/150x150/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE1MDQz/NDY0LTE1ODQ2MzY4/NzMtNzI4Ni5qcGVn.jpeg",
+                                community: { want: 12350, have: 7650 },
+                                format: ["CD", "Digital"],
+                                genre: ["R&B", "Pop"]
+                            },
+                            {
+                                id: 345678,
+                                title: "Billie Eilish - Happier Than Ever",
+                                year: 2024,
+                                cover_image: "https://i.discogs.com/r300-/release/19456789-billie-eilish-happier-than-ever.jpg",
+                                thumb: "https://i.discogs.com/150x150/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE5NDU2/Nzg5LTE2Mjg2MzY4/NzMtNzI4Ni5qcGVn.jpeg",
+                                community: { want: 11200, have: 6800 },
+                                format: ["Vinyl", "CD"],
+                                genre: ["Alternative", "Pop"]
+                            },
+                            {
+                                id: 456789,
+                                title: "Harry Styles - Harry's House",
+                                year: 2024,
+                                cover_image: "https://i.discogs.com/r300-/release/23123456-harry-styles-harrys-house.jpg",
+                                thumb: "https://i.discogs.com/150x150/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTIzMTIz/NDU2LTE2NTI2MzY4/NzMtNzI4Ni5qcGVn.jpeg",
+                                community: { want: 9800, have: 5200 },
+                                format: ["Vinyl", "CD"],
+                                genre: ["Pop", "Rock"]
+                            },
+                            {
+                                id: 567890,
+                                title: "Dua Lipa - Future Nostalgia",
+                                year: 2024,
+                                cover_image: "https://i.discogs.com/r300-/release/14987654-dua-lipa-future-nostalgia.jpg",
+                                thumb: "https://i.discogs.com/150x150/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE0OTg3/NjU0LTE1ODQ2MzY4/NzMtNzI4Ni5qcGVn.jpeg",
+                                community: { want: 8500, have: 4800 },
+                                format: ["Vinyl", "Digital"],
+                                genre: ["Pop", "Dance"]
+                            },
+                            {
+                                id: 678901,
+                                title: "Bad Bunny - Un Verano Sin Ti",
+                                year: 2024,
+                                cover_image: "https://i.discogs.com/r300-/release/23456789-bad-bunny-un-verano-sin-ti.jpg",
+                                thumb: "https://i.discogs.com/150x150/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTIzNDU2/Nzg5LTE2NTI2MzY4/NzMtNzI4Ni5qcGVn.jpeg",
+                                community: { want: 7200, have: 3900 },
+                                format: ["CD", "Digital"],
+                                genre: ["Reggaeton", "Latin"]
+                            }
+                        ],
+                        pagination: {
+                            page: 1,
+                            pages: 100,
+                            per_page: 20,
+                            items: 2000
+                        }
+                    };
+                    
+                    const responseTime = Date.now() - startTime;
+                    
+                    return {
+                        success: true,
+                        data: mockResponse.results.map((item, index) => ({
+                            id: item.id.toString(),
+                            title: item.title,
+                            artist: this.extractArtistFromTitle(item.title),
+                            image: item.cover_image,
+                            year: item.year,
+                            formats: item.format,
+                            genres: item.genre,
+                            community: item.community,
+                            rank: index + 1
+                        })),
+                        responseTime,
+                        source: 'Discogs API',
+                        url: url
+                    };
+                } catch (error) {
+                    return {
+                        success: false,
+                        error: error.message,
+                        responseTime: Date.now() - startTime,
+                        source: 'Discogs API'
+                    };
+                }
+            }
+
+            async testLastFmAPI() {
+                const startTime = Date.now();
+                try {
+                    // 模拟 Last.fm API 调用
+                    const params = {
+                        method: 'chart.gettopartists',
+                        api_key: 'demo_key',
+                        format: 'json',
+                        limit: '20'
+                    };
+                    
+                    const queryString = Object.keys(params)
+                        .map(key => `${key}=${encodeURIComponent(params[key])}`)
+                        .join('&');
+                    
+                    const url = `${this.LASTFM_BASE_URL}?${queryString}`;
+                    
+                    // 模拟响应数据
+                    const mockResponse = {
+                        artists: {
+                            artist: [
+                                {
+                                    name: "Taylor Swift",
+                                    playcount: "15420000",
+                                    listeners: "8930000",
+                                    image: [
+                                        { "#text": "https://lastfm.freetls.fastly.net/i/u/34s/2a96cbd8b46e442fc41c2b86b821562f.png", size: "small" },
+                                        { "#text": "https://lastfm.freetls.fastly.net/i/u/64s/2a96cbd8b46e442fc41c2b86b821562f.png", size: "medium" },
+                                        { "#text": "https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png", size: "large" },
+                                        { "#text": "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png", size: "extralarge" }
+                                    ]
+                                },
+                                {
+                                    name: "The Weeknd",
+                                    playcount: "12350000",
+                                    listeners: "7650000",
+                                    image: [
+                                        { "#text": "https://lastfm.freetls.fastly.net/i/u/34s/3b97cbd8b46e442fc41c2b86b821562f.png", size: "small" },
+                                        { "#text": "https://lastfm.freetls.fastly.net/i/u/64s/3b97cbd8b46e442fc41c2b86b821562f.png", size: "medium" },
+                                        { "#text": "https://lastfm.freetls.fastly.net/i/u/174s/3b97cbd8b46e442fc41c2b86b821562f.png", size: "large" },
+                                        { "#text": "https://lastfm.freetls.fastly.net/i/u/300x300/3b97cbd8b46e442fc41c2b86b821562f.png", size: "extralarge" }
+                                    ]
+                                },
+                                {
+                                    name: "Billie Eilish",
+                                    playcount: "11200000",
+                                    listeners: "6800000",
+                                    image: [
+                                        { "#text": "https://lastfm.freetls.fastly.net/i/u/34s/4c98cbd8b46e442fc41c2b86b821562f.png", size: "small" },
+                                        { "#text": "https://lastfm.freetls.fastly.net/i/u/64s/4c98cbd8b46e442fc41c2b86b821562f.png", size: "medium" },
+                                        { "#text": "https://lastfm.freetls.fastly.net/i/u/174s/4c98cbd8b46e442fc41c2b86b821562f.png", size: "large" },
+                                        { "#text": "https://lastfm.freetls.fastly.net/i/u/300x300/4c98cbd8b46e442fc41c2b86b821562f.png", size: "extralarge" }
+                                    ]
+                                },
+                                {
+                                    name: "Harry Styles",
+                                    playcount: "9800000",
+                                    listeners: "5200000",
+                                    image: [
+                                        { "#text": "https://lastfm.freetls.fastly.net/i/u/34s/5d99cbd8b46e442fc41c2b86b821562f.png", size: "small" },
+                                        { "#text": "https://lastfm.freetls.fastly.net/i/u/64s/5d99cbd8b46e442fc41c2b86b821562f.png", size: "medium" },
+                                        { "#text": "https://lastfm.freetls.fastly.net/i/u/174s/5d99cbd8b46e442fc41c2b86b821562f.png", size: "large" },
+                                        { "#text": "https://lastfm.freetls.fastly.net/i/u/300x300/5d99cbd8b46e442fc41c2b86b821562f.png", size: "extralarge" }
+                                    ]
+                                },
+                                {
+                                    name: "Dua Lipa",
+                                    playcount: "8500000",
+                                    listeners: "4800000",
+                                    image: [
+                                        { "#text": "https://lastfm.freetls.fastly.net/i/u/34s/6e9acbd8b46e442fc41c2b86b821562f.png", size: "small" },
+                                        { "#text": "https://lastfm.freetls.fastly.net/i/u/64s/6e9acbd8b46e442fc41c2b86b821562f.png", size: "medium" },
+                                        { "#text": "https://lastfm.freetls.fastly.net/i/u/174s/6e9acbd8b46e442fc41c2b86b821562f.png", size: "large" },
+                                        { "#text": "https://lastfm.freetls.fastly.net/i/u/300x300/6e9acbd8b46e442fc41c2b86b821562f.png", size: "extralarge" }
+                                    ]
+                                }
+                            ]
+                        }
+                    };
+                    
+                    const responseTime = Date.now() - startTime;
+                    
+                    return {
+                        success: true,
+                        data: mockResponse.artists.artist.map((artist, index) => ({
+                            id: `lastfm_${index}`,
+                            title: artist.name,
+                            artist: artist.name,
+                            image: artist.image.find(img => img.size === 'extralarge')?.['#text'] || '',
+                            playcount: parseInt(artist.playcount),
+                            listeners: parseInt(artist.listeners),
+                            rank: index + 1
+                        })),
+                        responseTime,
+                        source: 'Last.fm API',
+                        url: url
+                    };
+                } catch (error) {
+                    return {
+                        success: false,
+                        error: error.message,
+                        responseTime: Date.now() - startTime,
+                        source: 'Last.fm API'
+                    };
+                }
+            }
+
+            async testFallbackData() {
+                const startTime = Date.now();
+                
+                // 模拟备用数据
+                const fallbackData = [
+                    {
+                        id: 'fallback_1',
+                        title: 'Midnights',
+                        artist: 'Taylor Swift',
+                        image: 'https://i.discogs.com/r300-/release/24755573-taylor-swift-midnights.jpg',
+                        year: 2024,
+                        genres: ['Pop'],
+                        rank: 1
+                    },
+                    {
+                        id: 'fallback_2',
+                        title: 'After Hours',
+                        artist: 'The Weeknd',
+                        image: 'https://i.discogs.com/r300-/release/15043464-the-weeknd-after-hours.jpg',
+                        year: 2024,
+                        genres: ['R&B'],
+                        rank: 2
+                    },
+                    {
+                        id: 'fallback_3',
+                        title: 'Happier Than Ever',
+                        artist: 'Billie Eilish',
+                        image: 'https://i.discogs.com/r300-/release/19456789-billie-eilish-happier-than-ever.jpg',
+                        year: 2024,
+                        genres: ['Alternative'],
+                        rank: 3
+                    },
+                    {
+                        id: 'fallback_4',
+                        title: "Harry's House",
+                        artist: 'Harry Styles',
+                        image: 'https://i.discogs.com/r300-/release/23123456-harry-styles-harrys-house.jpg',
+                        year: 2024,
+                        genres: ['Pop'],
+                        rank: 4
+                    },
+                    {
+                        id: 'fallback_5',
+                        title: 'Future Nostalgia',
+                        artist: 'Dua Lipa',
+                        image: 'https://i.discogs.com/r300-/release/14987654-dua-lipa-future-nostalgia.jpg',
+                        year: 2024,
+                        genres: ['Pop'],
+                        rank: 5
+                    }
+                ];
+                
+                const responseTime = Date.now() - startTime;
+                
+                return {
+                    success: true,
+                    data: fallbackData,
+                    responseTime,
+                    source: '本地备用数据'
+                };
+            }
+
+            extractArtistFromTitle(title) {
+                if (!title) return '未知艺术家';
+                
+                const separators = [' - ', ' – ', ' — ', ': '];
+                for (const sep of separators) {
+                    if (title.includes(sep)) {
+                        return title.split(sep)[0].trim();
+                    }
+                }
+                return title.split(' ')[0];
+            }
+
+            calculateDataQuality(data) {
+                if (!data || data.length === 0) return 0;
+                
+                let totalFields = 0;
+                let filledFields = 0;
+                
+                data.forEach(item => {
+                    const fields = ['id', 'title', 'artist', 'image', 'year'];
+                    fields.forEach(field => {
+                        totalFields++;
+                        if (item[field] && item[field] !== '' && item[field] !== '未知艺术家') {
+                            filledFields++;
+                        }
+                    });
+                });
+                
+                return Math.round((filledFields / totalFields) * 100);
+            }
+
+            updateStats() {
+                document.getElementById('totalRecords').textContent = this.stats.totalRecords;
+                document.getElementById('successfulAPIs').textContent = this.stats.successfulAPIs;
+                document.getElementById('avgResponseTime').textContent = 
+                    this.stats.apiCount > 0 ? Math.round(this.stats.totalResponseTime / this.stats.apiCount) + 'ms' : '0ms';
+                document.getElementById('dataQuality').textContent = this.stats.dataQuality + '%';
+                document.getElementById('stats').style.display = 'grid';
+            }
+
+            renderResults(apiName, result) {
+                const resultsDiv = document.getElementById('results');
+                
+                const section = document.createElement('div');
+                section.className = 'api-section';
+                
+                const header = document.createElement('div');
+                header.className = 'api-header';
+                
+                const title = document.createElement('h3');
+                title.className = 'api-title';
+                title.textContent = result.source || apiName;
+                
+                const status = document.createElement('span');
+                status.className = `api-status ${result.success ? 'status-success' : 'status-error'}`;
+                status.textContent = result.success ? '✅ 成功' : '❌ 失败';
+                
+                title.appendChild(status);
+                header.appendChild(title);
+                
+                const content = document.createElement('div');
+                content.className = 'api-content';
+                
+                if (result.success && result.data) {
+                    // 显示统计信息
+                    const info = document.createElement('div');
+                    info.innerHTML = `
+                        <p><strong>响应时间:</strong> ${result.responseTime}ms</p>
+                        <p><strong>数据条数:</strong> ${result.data.length}</p>
+                        <p><strong>数据完整度:</strong> ${this.calculateDataQuality(result.data)}%</p>
+                        ${result.url ? `<p><strong>API URL:</strong> <code style="background: #f8f9fa; padding: 2px 6px; border-radius: 3px; font-size: 0.9em;">${result.url}</code></p>` : ''}
+                    `;
+                    content.appendChild(info);
+                    
+                    // 显示记录卡片
+                    const grid = document.createElement('div');
+                    grid.className = 'record-grid';
+                    
+                    result.data.slice(0, 6).forEach(record => {
+                        const card = document.createElement('div');
+                        card.className = 'record-card';
+                        
+                        // 创建图片元素
+                        let imageHtml = '';
+                        if (record.image && record.image !== '') {
+                            imageHtml = `<img src="${record.image}" alt="${record.title}" class="record-image" 
+                                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" 
+                                onload="this.style.display='block'; this.nextElementSibling.style.display='none';" 
+                                loading="lazy">
+                                <div class="record-image" style="background: linear-gradient(45deg, #667eea, #764ba2); display: none; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                                    ${record.title ? record.title.substring(0, 2).toUpperCase() : 'NO'}
+                                </div>`;
+                        } else {
+                            imageHtml = `<div class="record-image" style="background: linear-gradient(45deg, #ff6b6b, #ee5a24); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                                ${record.title ? record.title.substring(0, 2).toUpperCase() : 'NO'}
+                            </div>`;
+                        }
+                        
+                        card.innerHTML = `
+                            ${imageHtml}
+                            <div class="record-title">${record.title || '未知标题'}</div>
+                            <div class="record-artist">🎤 ${record.artist || '未知艺术家'}</div>
+                            <div class="record-meta">
+                                ${record.year ? `📅 ${record.year}` : ''}
+                                ${record.playcount ? `🎵 ${record.playcount.toLocaleString()} 播放` : ''}
+                                ${record.listeners ? `👥 ${record.listeners.toLocaleString()} 听众` : ''}
+                                ${record.community ? `❤️ ${record.community.want} 想要 | 💿 ${record.community.have} 拥有` : ''}
+                                ${record.genres ? `🏷️ ${record.genres.join(', ')}` : ''}
+                                ${record.formats ? `💽 ${record.formats.join(', ')}` : ''}
+                            </div>
+                        `;
+                        grid.appendChild(card);
+                    });
+                    
+                    content.appendChild(grid);
+                    
+                    // 显示原始JSON数据
+                    const jsonTitle = document.createElement('h4');
+                    jsonTitle.textContent = '原始数据 (前3条)';
+                    jsonTitle.style.marginTop = '30px';
+                    content.appendChild(jsonTitle);
+                    
+                    const jsonViewer = document.createElement('div');
+                    jsonViewer.className = 'json-viewer';
+                    jsonViewer.textContent = JSON.stringify(result.data.slice(0, 3), null, 2);
+                    content.appendChild(jsonViewer);
+                    
+                } else {
+                    const error = document.createElement('div');
+                    error.className = 'error-message';
+                    error.innerHTML = `
+                        <strong>错误信息:</strong> ${result.error || '未知错误'}<br>
+                        <strong>响应时间:</strong> ${result.responseTime}ms
+                    `;
+                    content.appendChild(error);
+                }
+                
+                section.appendChild(header);
+                section.appendChild(content);
+                
+                // 插入到统计信息后面
+                const statsDiv = document.getElementById('stats');
+                if (statsDiv.nextSibling) {
+                    resultsDiv.insertBefore(section, statsDiv.nextSibling);
+                } else {
+                    resultsDiv.appendChild(section);
+                }
+            }
+
+            showLoading(message) {
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.innerHTML = `
+                    <div class="stats" id="stats" style="display: none;">
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalRecords">0</div>
+                            <div class="stat-label">总记录数</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="successfulAPIs">0</div>
+                            <div class="stat-label">成功的API</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="avgResponseTime">0ms</div>
+                            <div class="stat-label">平均响应时间</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="dataQuality">0%</div>
+                            <div class="stat-label">数据完整度</div>
+                        </div>
+                    </div>
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>${message}</p>
+                    </div>
+                `;
+            }
+
+            resetStats() {
+                this.stats = {
+                    totalRecords: 0,
+                    successfulAPIs: 0,
+                    totalResponseTime: 0,
+                    apiCount: 0,
+                    dataQuality: 0
+                };
+            }
+
+            updateStatsWithResult(result) {
+                this.stats.apiCount++;
+                this.stats.totalResponseTime += result.responseTime;
+                
+                if (result.success) {
+                    this.stats.successfulAPIs++;
+                    if (result.data) {
+                        this.stats.totalRecords += result.data.length;
+                        const quality = this.calculateDataQuality(result.data);
+                        this.stats.dataQuality = Math.round((this.stats.dataQuality * (this.stats.successfulAPIs - 1) + quality) / this.stats.successfulAPIs);
+                    }
+                }
+            }
+        }
+
+        const tester = new APITester();
+
+        async function testDiscogsAPI() {
+            tester.showLoading('正在测试 Discogs API...');
+            tester.resetStats();
+            
+            const result = await tester.testDiscogsAPI();
+            tester.updateStatsWithResult(result);
+            tester.renderResults('Discogs API', result);
+            tester.updateStats();
+        }
+
+        async function testLastFmAPI() {
+            tester.showLoading('正在测试 Last.fm API...');
+            tester.resetStats();
+            
+            const result = await tester.testLastFmAPI();
+            tester.updateStatsWithResult(result);
+            tester.renderResults('Last.fm API', result);
+            tester.updateStats();
+        }
+
+        async function testFallbackData() {
+            tester.showLoading('正在加载备用数据...');
+            tester.resetStats();
+            
+            const result = await tester.testFallbackData();
+            tester.updateStatsWithResult(result);
+            tester.renderResults('备用数据', result);
+            tester.updateStats();
+        }
+
+        async function testAllAPIs() {
+            tester.showLoading('正在测试所有数据源...');
+            tester.resetStats();
+            
+            const apis = [
+                { name: 'Discogs API', func: () => tester.testDiscogsAPI() },
+                { name: 'Last.fm API', func: () => tester.testLastFmAPI() },
+                { name: '备用数据', func: () => tester.testFallbackData() }
+            ];
+            
+            for (const api of apis) {
+                const result = await api.func();
+                tester.updateStatsWithResult(result);
+                tester.renderResults(api.name, result);
+                
+                // 添加小延迟以便观察加载过程
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            tester.updateStats();
+        }
+
+        // 禁用按钮功能
+        function disableButtons() {
+            const buttons = document.querySelectorAll('.btn');
+            buttons.forEach(btn => btn.disabled = true);
+        }
+
+        function enableButtons() {
+            const buttons = document.querySelectorAll('.btn');
+            buttons.forEach(btn => btn.disabled = false);
+        }
+
+        // 重写测试函数以包含按钮状态管理
+        const originalFunctions = {
+            testDiscogsAPI: testDiscogsAPI,
+            testLastFmAPI: testLastFmAPI,
+            testFallbackData: testFallbackData,
+            testAllAPIs: testAllAPIs
+        };
+
+        Object.keys(originalFunctions).forEach(funcName => {
+            window[funcName] = async function() {
+                disableButtons();
+                try {
+                    await originalFunctions[funcName]();
+                } finally {
+                    enableButtons();
+                }
+            };
+        });
+    </script>
+</body>
+</html>

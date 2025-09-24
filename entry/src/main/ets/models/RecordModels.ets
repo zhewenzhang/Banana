@@ -114,3 +114,17 @@ export interface WaterfallItem {
   record: LocalRecord;
   height: number; // 用於瀑布流布局的高度
 }
+
+// 价值排行榜唱片接口
+export interface ValueRankingRecord {
+  id: number;
+  rank: number;
+  title: string;
+  artist: string;
+  thumb?: string;
+  year?: string;
+  genre?: string[];
+  format?: string[];
+  estimatedValue: number; // 估值（美元）
+  priceChange: number; // 价格变化百分比
+}

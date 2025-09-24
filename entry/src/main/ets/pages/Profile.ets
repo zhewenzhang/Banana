@@ -1,6 +1,8 @@
 import router from '@ohos.router';
 import { LoginModal } from '../components/LoginModal';
 import { UserData, UserStats } from '../common/UserTypes';
+import { AuthService } from '../services/AuthService';
+import { StorageManager } from '../common/StorageManager';
 
 // 用户设置项接口
 interface SettingItem {
@@ -29,6 +31,7 @@ struct Profile {
 
   // 用户数据 - 默認為空，登錄後填充
   @State userData: UserData = {
+    id: '', // 添加必需的id字段
     name: '',
     username: '',
     joinDate: '',
@@ -43,13 +46,18 @@ struct Profile {
 
   // 设置选项
   private settingItems: SettingItem[] = [
-    { icon: 'notifications', title: 'Notifications', hasToggle: true, isToggled: true },
-    { icon: 'lock', title: 'Privacy & Security' },
-    { icon: 'visibility', title: 'Appearance' },
-    { icon: 'language', title: 'Language & Region' },
-    { icon: 'help', title: 'Help & Support' },
-    { icon: 'info', title: 'About' }
+    { icon: 'ic_favorite', title: '我的收藏' },
+    { icon: 'help', title: '帮助和支持' },
+    { icon: 'info', title: '关于我们' }
   ];
+
+  // 组件即将出现时的生命周期方法
+  async aboutToAppear() {
+    console.log('Profile页面即将出现');
+    
+    // 检查登录状态并恢复用户数据
+    await this.checkLoginStatus();
+  }
 
   // 生成渐变色占位符的方法
   private getGradientColors(index: number): string[] {
@@ -71,16 +79,41 @@ struct Profile {
 
   // 處理登錄成功
   private handleLoginSuccess = (userData: UserData) => {
+    console.log('=== Profile handleLoginSuccess 开始 ===');
+    console.log('接收到的用户数据:', userData);
+    
     this.isLoggedIn = true;
     this.userData = userData;
     this.showLoginModal = false;
-    console.log('Login successful:', userData);
+    
+    console.log('Profile组件状态更新后:');
+    console.log('isLoggedIn:', this.isLoggedIn);
+    console.log('userData:', this.userData);
+    console.log('=== Profile handleLoginSuccess 结束 ===');
   }
 
   // 處理登出
-  private handleLogout = () => {
+  private handleLogout = async () => {
+    console.log('=== Profile handleLogout 开始 ===');
+    
+    try {
+      // 调用AuthService的logout方法清除本地存储
+      const authService = AuthService.getInstance();
+      const logoutResult = await authService.logout();
+      
+      if (logoutResult) {
+        console.log('AuthService logout 成功');
+      } else {
+        console.error('AuthService logout 失败');
+      }
+    } catch (error) {
+      console.error('logout 过程中发生错误:', error);
+    }
+    
+    // 重置组件状态
     this.isLoggedIn = false;
     this.userData = {
+      id: '', // 添加必需的id字段
       name: '',
       username: '',
       joinDate: '',
@@ -92,7 +125,9 @@ struct Profile {
         following: 0
       }
     };
-    console.log('用戶已登出');
+    
+    console.log('Profile组件状态已重置');
+    console.log('=== Profile handleLogout 结束 ===');
   }
 
   // 顯示登錄彈窗
@@ -100,61 +135,213 @@ struct Profile {
     this.showLoginModal = true;
   }
 
+  // 检查登录状态并恢复用户数据
+  private async checkLoginStatus() {
+    console.log('=== Profile checkLoginStatus 开始 ===');
+    
+    try {
+      const authService = AuthService.getInstance();
+      const isLoggedIn = await authService.isLoggedIn();
+      
+      console.log('登录状态检查结果:', isLoggedIn);
+      
+      if (isLoggedIn) {
+        const currentUser = await authService.getCurrentUser();
+        console.log('获取到的当前用户数据:', currentUser);
+        
+        if (currentUser?.id) {
+          console.log('用户ID:', currentUser.id);
+          console.log('用户ID类型:', typeof currentUser.id);
+          
+          this.isLoggedIn = true;
+          this.userData = currentUser;
+          
+          console.log('Profile组件状态已更新为已登录');
+        } else {
+          console.log('用户数据无效或缺少ID字段');
+          this.isLoggedIn = false;
+        }
+      } else {
+        console.log('用户未登录');
+        this.isLoggedIn = false;
+      }
+    } catch (error) {
+      console.error('checkLoginStatus 异常:', error);
+      this.isLoggedIn = false;
+    }
+    
+    console.log('=== Profile checkLoginStatus 结束 ===');
+  }
+
   // 構建未登錄狀態的提示頁面
   @Builder
   LoginPromptContent() {
+    Stack() {
+      // 原有的登录UI内容（保持不变）
+      Column({ space: 32 }) {
+        // 提示文字
+        Column({ space: 12 }) {
+          Text('一起享受胶片吧')
+            .fontSize(24)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(this.textPrimary)
+            .textAlign(TextAlign.Center)
 
-    Column({ space: 32 }) {
-      // 提示文字
-      Column({ space: 12 }) {
-        Text('一起享受胶片吧')
-          .fontSize(24)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(this.textPrimary)
-          .textAlign(TextAlign.Center)
+          Text('登录后可以收藏和交流唱片信息\n小众爱好的小天地')
+            .fontSize(16)
+            .fontColor(this.textSecondary)
+            .textAlign(TextAlign.Center)
+            .lineHeight(24)
+        }
 
-        Text('登录后可以收藏和交流唱片信息\n小众爱好的小天地')
-          .fontSize(16)
-          .fontColor(this.textSecondary)
-          .textAlign(TextAlign.Center)
-          .lineHeight(24)
-      }
+        // 登錄和註冊按鈕
+        Column({ space: 16 }) {
+          Button('登录')
+            .width('100%')
+            .height(48)
+            .fontSize(16)
+            .fontWeight(FontWeight.Medium)
+            .fontColor(Color.White)
+            .backgroundColor(this.secondaryColor)
+            .borderRadius(8)
+            .onClick(() => {
+              this.loginModalMode = true; // 设置为登录模式
+              this.showLoginModal = true;
+            })
 
-      // 登錄和註冊按鈕
-      Column({ space: 16 }) {
-        Button('登录')
-          .width('100%')
-          .height(48)
-          .fontSize(16)
-          .fontWeight(FontWeight.Medium)
-          .fontColor(Color.White)
-          .backgroundColor(this.secondaryColor)
-          .borderRadius(8)
-          .onClick(() => {
-            this.loginModalMode = true; // 设置为登录模式
-            this.showLoginModal = true;
-          })
-
-        Button('注册')
-          .width('100%')
-          .height(48)
-          .fontSize(16)
-          .fontWeight(FontWeight.Medium)
-          .fontColor(this.primaryColor)
-          .backgroundColor('transparent')
-          .border({ width: 1, color: this.primaryColor })
-          .borderRadius(8)
-          .onClick(() => {
-            this.loginModalMode = false; // 设置为注册模式
-            this.showLoginModal = true;
-          })
+          Button('注册')
+            .width('100%')
+            .height(48)
+            .fontSize(16)
+            .fontWeight(FontWeight.Medium)
+            .fontColor(this.primaryColor)
+            .backgroundColor('transparent')
+            .border({ width: 1, color: this.primaryColor })
+            .borderRadius(8)
+            .onClick(() => {
+              this.loginModalMode = false; // 设置为注册模式
+              this.showLoginModal = true;
+            })
+        }
+        .width('100%')
+        .padding({ left: 32, right: 32 })
       }
       .width('100%')
-      .padding({ left: 32, right: 32 })
+      .padding({ top: 60 })
+      .justifyContent(FlexAlign.Center)
+
+      // 开发中遮蔽层
+      Column({ space: 24 }) {
+        // 开发中图标
+        Column({ space: 16 }) {
+          // 使用简单的几何图形作为开发图标
+          Row() {
+            Column()
+              .width(8)
+              .height(8)
+              .backgroundColor('#FFD93D')
+              .borderRadius(4)
+              .margin({ right: 4 })
+            
+            Column()
+              .width(8)
+              .height(8)
+              .backgroundColor('#4ECDC4')
+              .borderRadius(4)
+              .margin({ right: 4 })
+            
+            Column()
+              .width(8)
+              .height(8)
+              .backgroundColor('#FF6B6B')
+              .borderRadius(4)
+          }
+          .justifyContent(FlexAlign.Center)
+          .animation({
+            duration: 1500,
+            curve: Curve.EaseInOut,
+            iterations: -1,
+            playMode: PlayMode.Alternate
+          })
+          .scale({ x: 1.2, y: 1.2 })
+
+          Text('🚧')
+            .fontSize(48)
+            .fontColor('#FFD93D')
+        }
+        .alignItems(HorizontalAlign.Center)
+
+        // 开发中文字
+        Column({ space: 8 }) {
+          Text('功能开发中')
+            .fontSize(24)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(this.textPrimary)
+            .textAlign(TextAlign.Center)
+
+          Text('登录注册功能正在开发中\n敬请期待')
+            .fontSize(16)
+            .fontColor(this.textSecondary)
+            .textAlign(TextAlign.Center)
+            .lineHeight(24)
+        }
+
+        // 开发进度指示
+        Column({ space: 12 }) {
+          Text('开发进度')
+            .fontSize(14)
+            .fontColor(this.textSecondary)
+            .textAlign(TextAlign.Center)
+
+          // 进度条
+          Row() {
+            Column()
+              .width('60%')
+              .height(4)
+              .backgroundColor('#4ECDC4')
+              .borderRadius(2)
+            
+            Column()
+              .width('40%')
+              .height(4)
+              .backgroundColor(this.customBorderColor)
+              .borderRadius(2)
+          }
+          .width('80%')
+          .backgroundColor(this.customBorderColor)
+          .borderRadius(2)
+
+          Text('60% 完成')
+            .fontSize(12)
+            .fontColor(this.textSecondary + '80')
+            .textAlign(TextAlign.Center)
+        }
+        .alignItems(HorizontalAlign.Center)
+
+        // 预计完成时间
+        Column({ space: 4 }) {
+          Text('预计完成时间')
+            .fontSize(12)
+            .fontColor(this.textSecondary + '60')
+            .textAlign(TextAlign.Center)
+
+          Text('即将上线')
+            .fontSize(14)
+            .fontWeight(FontWeight.Medium)
+            .fontColor('#4ECDC4')
+            .textAlign(TextAlign.Center)
+        }
+      }
+      .width('100%')
+      .height('100%')
+      .padding({ left: 32, right: 32, top: 60 })
+      .backgroundColor(this.bgColor + 'F0') // 半透明背景
+      .backdropBlur(10) // 背景模糊效果
+      .justifyContent(FlexAlign.Center)
+      .alignItems(HorizontalAlign.Center)
     }
     .width('100%')
-    .padding({ top: 60 })
-    .justifyContent(FlexAlign.Center)
+    .height('100%')
   }
 
   // 構建已登錄狀態的用戶資料頁面
@@ -312,6 +499,10 @@ struct Profile {
               .padding({ left: 16, right: 16 })
               .onClick(() => {
                 console.log(`Clicked: ${item?.title || ''}`);
+                // 处理不同设置项的点击事件
+                if (item?.title === '我的收藏') {
+                  router.pushUrl({ url: 'pages/FavoritesPage' });
+                }
               })
 
               // 分割线（除了最后一项）

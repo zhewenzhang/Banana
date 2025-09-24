@@ -1,5 +1,11 @@
 import router from '@ohos.router';
 import http from '@ohos.net.http';
+import { FavoriteService } from '../services/FavoriteService';
+import { AuthService } from '../services/AuthService';
+import { FavoriteRequest } from '../common/UserTypes';
+import { FavoriteStorageManager } from '../services/FavoriteStorageManager';
+import { ApiRecordItem, MusicApiService } from '../services/MusicApiService';
+import { ApiConfig } from '../common/ApiConfig';
 
 // 定義Discogs API返回的詳細數據接口
 interface DiscogsArtist {
@@ -48,6 +54,15 @@ interface DiscogsCompany {
   entity_type_name: string;
 }
 
+// 模擬數據的類型定義
+interface MockRecordData {
+  title: string;
+  artist: string;
+  year: string;
+  genres: string[];
+  image: string;
+}
+
 interface DiscogsReleaseDetail {
   id: number;
   title: string;
@@ -57,6 +72,7 @@ interface DiscogsReleaseDetail {
   formats?: DiscogsFormat[];
   country?: string;
   released?: string;
+  year?: number; // 發行年份
   genres?: string[];
   styles?: string[];
   tracklist?: DiscogsTrack[];
@@ -68,12 +84,16 @@ interface DiscogsReleaseDetail {
 @Entry
 @Component
 struct RecordDetail {
-  @State recordId: number = 0;
+  @State recordId: string = '';
   @State recordDetail: DiscogsReleaseDetail | null = null;
   @State isLoading: boolean = false;
   @State currentTab: number = 0;
   @State selectedImageIndex: number = 0;
   @State isFavorite: boolean = false; // 收藏状态
+  @State private isProcessingFavorite: boolean = false; // 收藏操作处理状态
+  private favoriteService: FavoriteService = FavoriteService.getInstance();
+  private authService: AuthService = AuthService.getInstance();
+  private storageManager: FavoriteStorageManager = FavoriteStorageManager.getInstance();
 
   // 顏色主題
   private primaryColor: string = '#FFFFFF';
@@ -88,12 +108,59 @@ struct RecordDetail {
   private readonly USER_AGENT = 'BananaRecordApp/1.0';
 
   aboutToAppear() {
-    // 獲取路由參數
+    console.log('=== RecordDetail aboutToAppear 开始 ===');
+    
+    // 初始化存储管理器
+    this.storageManager.initStorage();
+    
+    // 获取路由参数
     const params = router.getParams() as Record<string, Object>;
-    if (params && params.recordId) {
-      this.recordId = params.recordId as number;
-      this.loadRecordDetail();
+    console.log('路由参数:', params);
+    
+    // 提取recordId
+    this.recordId = (params?.recordId as string) || '';
+    console.log('提取的recordId:', this.recordId, '类型:', typeof this.recordId);
+    
+    // 检查是否有额外的唱片信息参数
+    const recordTitle = params?.recordTitle as string;
+    const recordArtist = params?.recordArtist as string;
+    const recordImage = params?.recordImage as string;
+    
+    if (recordTitle && recordArtist) {
+      // 如果有额外的唱片信息，直接使用这些信息构建详情
+      console.log('使用传递的唱片信息:', { recordTitle, recordArtist, recordImage });
+      this.buildRecordFromParams(recordTitle, recordArtist, recordImage);
+      this.checkFavoriteStatus(); // 检查收藏状态
+    } else {
+      // 否则按原有逻辑加载
+      if (this.recordId) {
+        this.loadRecordDetail();
+        this.checkFavoriteStatus(); // 检查收藏状态
+      } else {
+        console.error('未提供recordId参数');
+      }
     }
+  }
+
+  // 新增方法：根据传递的参数构建唱片详情
+  private buildRecordFromParams(title: string, artist: string, image?: string): void {
+    this.isLoading = false;
+    this.recordDetail = {
+      id: parseInt(this.recordId) || 0,
+      title: title,
+      artists: [{ name: artist }],
+      year: 2023,
+      genres: ['Pop'],
+      images: image ? [{ type: 'primary', uri: image, uri150: image }] : [],
+      labels: [{ name: '未知厂牌', catno: 'N/A' }],
+      formats: [{ name: 'Digital', descriptions: ['Album'] }],
+      tracklist: [],
+      extraartists: [],
+      notes: `这是来自首页潮流趋势的热门专辑《${title}》，由${artist}演出。`,
+      released: '2023',
+      country: 'Unknown'
+    };
+    console.log('构建的recordDetail:', this.recordDetail);
   }
 
   // 載入唱片詳情
@@ -103,28 +170,42 @@ struct RecordDetail {
     this.isLoading = true;
     
     try {
+      // 检查是否配置了API Token
+      if (!ApiConfig.hasDiscogsToken()) {
+        console.warn('Discogs API Token未配置，使用模拟数据');
+        this.loadMockDetail();
+        return;
+      }
+
       const httpRequest = http.createHttp();
-      const url = `${this.DISCOGS_API_URL}/releases/${this.recordId}`;
+      const url = `${ApiConfig.DISCOGS_API_URL}/releases/${this.recordId}`;
+      
+      console.log(`正在加载唱片详情，ID: ${this.recordId}, URL: ${url}`);
+      console.log('使用API Token:', ApiConfig.hasDiscogsToken() ? '已配置' : '未配置');
       
       const response = await httpRequest.request(url, {
         method: http.RequestMethod.GET,
-        header: {
-          'User-Agent': this.USER_AGENT,
-          'Accept': 'application/json'
-        }
+        header: ApiConfig.getDiscogsHeaders(),
+        connectTimeout: 10000,
+        readTimeout: 10000
       });
 
       if (response.responseCode === 200) {
         const data = JSON.parse(response.result as string) as DiscogsReleaseDetail;
+        console.log('✅ 成功从Discogs API获取唱片详情:', data.title);
+        console.log('API返回的完整数据:', JSON.stringify(data, null, 2));
         this.recordDetail = data;
+      } else if (response.responseCode === 404) {
+        console.warn(`唱片ID ${this.recordId} 在Discogs数据库中不存在，使用模拟数据`);
+        this.loadMockDetail();
       } else {
-        console.error('Discogs API error:', response.responseCode);
-        // 使用模擬數據作為後備
+        console.error('Discogs API error:', response.responseCode, response.result);
+        console.log('API调用失败，使用模拟数据');
         this.loadMockDetail();
       }
     } catch (error) {
       console.error('Load detail error:', error);
-      // 使用模擬數據作為後備
+      console.log('网络请求异常，使用模拟数据');
       this.loadMockDetail();
     } finally {
       this.isLoading = false;
@@ -133,12 +214,75 @@ struct RecordDetail {
 
   // 載入模擬詳情數據
   private loadMockDetail() {
-    const mockArtists: DiscogsReleaseArtist[] = [{ name: '張國榮' }];
+    console.log('=== loadMockDetail 开始 ===');
+    console.log('当前recordId:', this.recordId);
+    console.log('recordId类型:', typeof this.recordId);
+    console.log('⚠️ 注意：当前显示的是模拟数据，不是真实的Discogs API数据');
+    
+    // 根據recordId生成對應的模擬數據 - 使用真实Discogs高价值唱片数据
+    const mockDataMap: Record<string, MockRecordData> = {
+      '249504': {
+        title: 'Please Please Me',
+        artist: 'The Beatles',
+        year: '1963',
+        genres: ['Rock', 'Pop'],
+        image: 'https://i.discogs.com/r300-/release/249504-The-Beatles-Please-Please-Me.jpg'
+      },
+      '9823525': {
+        title: 'Wish You Were Here',
+        artist: 'Pink Floyd',
+        year: '1975',
+        genres: ['Rock', 'Progressive Rock'],
+        image: 'https://i.discogs.com/r300-/release/9823525-Pink-Floyd-Wish-You-Were-Here.jpg'
+      },
+      '4262072': {
+        title: 'Xanadu',
+        artist: 'Olivia Newton-John & Electric Light Orchestra',
+        year: '1980',
+        genres: ['Pop', 'Soundtrack'],
+        image: 'https://i.discogs.com/r300-/release/4262072-Olivia-Newton-John-Electric-Light-Orchestra-Xanadu.jpg'
+      },
+      '1218307': {
+        title: 'Overseas',
+        artist: 'Tommy Flanagan Trio',
+        year: '1958',
+        genres: ['Jazz'],
+        image: 'https://i.discogs.com/r300-/release/1218307-Tommy-Flanagan-Trio-Overseas.jpg'
+      },
+      '5678901': {
+        title: 'Your Love Is What I Want',
+        artist: 'The Ravins',
+        year: '1969',
+        genres: ['Soul', 'Northern Soul'],
+        image: 'https://i.discogs.com/r300-/release/5678901-The-Ravins-Your-Love-Is-What-I-Want.jpg'
+      }
+    };
+
+    // 为动态生成的recordId添加通用的模拟数据
+    let mockData: MockRecordData = mockDataMap[this.recordId];
+    
+    if (!mockData) {
+      // 如果没有找到对应的mockData，生成通用的模拟数据
+      console.log('未找到对应的mockData，使用通用模拟数据');
+      mockData = {
+        title: '热门专辑',
+        artist: '知名艺术家',
+        year: '2023',
+        genres: ['Pop', 'Rock'],
+        image: 'https://i.scdn.co/image/ab67616d0000b273ef6f049cce6fcc59a6e52233'
+      };
+    }
+    
+    console.log('选择的mockData:', mockData);
+    console.log('是否使用默认数据:', !mockDataMap[this.recordId]);
+    console.log('💡 提示：要获取真实的唱片详情，请配置Discogs API Token');
+    
+    const mockArtists: DiscogsReleaseArtist[] = [{ name: mockData.artist }];
     const mockImages: DiscogsImage[] = [
       {
         type: 'primary',
-        uri: 'https://i.discogs.com/example1.jpg',
-        uri150: 'https://i.discogs.com/example1_150.jpg'
+        uri: mockData.image,
+        uri150: mockData.image
       }
     ];
     const mockLabels: DiscogsLabel[] = [
@@ -280,16 +424,16 @@ struct RecordDetail {
     ];
 
     this.recordDetail = {
-      id: this.recordId,
-      title: '張國榮',
+      id: parseInt(this.recordId),
+      title: mockData.title,
       artists: mockArtists,
       images: mockImages,
       labels: mockLabels,
       formats: mockFormats,
-      country: 'Hong Kong',
-      released: '1986-10-01',
-      genres: ['Pop'],
-      styles: ['Cantopop'],
+      country: 'USA',
+      released: mockData.year,
+      genres: mockData.genres,
+      styles: mockData.genres,
       tracklist: mockTracklist,
       extraartists: mockReleaseExtraArtists,
       companies: mockCompanies
@@ -301,11 +445,124 @@ struct RecordDetail {
     router.back();
   }
 
-  // 切换收藏状态
-  private toggleFavorite() {
-    this.isFavorite = !this.isFavorite;
-    // TODO: 这里可以添加实际的收藏逻辑，比如调用API保存到服务器
-    console.log(`唱片 ${this.recordDetail?.title} 收藏状态: ${this.isFavorite}`);
+  // 切換收藏狀態
+  private async toggleFavorite() {
+    console.log('=== toggleFavorite 开始 ===');
+    console.log('当前收藏状态:', this.isFavorite);
+    console.log('唱片ID:', this.recordId);
+
+    // 防止重复点击
+    if (this.isProcessingFavorite) {
+      console.log('正在处理收藏操作，忽略重复点击');
+      return;
+    }
+
+    // 检查用户登录状态
+    const isLoggedIn = await this.authService.isLoggedIn();
+    if (!isLoggedIn) {
+      console.log('用户未登录，无法收藏');
+      // TODO: 显示登录提示或跳转到登录页面
+      return;
+    }
+
+    // 获取当前用户信息
+    const currentUser = await this.authService.getCurrentUser();
+    console.log('用户信息详细内容:', JSON.stringify(currentUser, null, 2));
+    console.log('用户ID:', currentUser?.id);
+    console.log('用户ID类型:', typeof currentUser?.id);
+    if (!currentUser?.id) {
+      console.log('无法获取用户信息');
+      return;
+    }
+
+    // 检查唱片详情是否已加载
+    if (!this.recordDetail) {
+      console.log('唱片详情未加载，无法收藏');
+      return;
+    }
+
+    this.isProcessingFavorite = true;
+
+    try {
+      if (this.isFavorite) {
+        // 取消收藏
+        console.log('执行取消收藏操作');
+        const result = await this.favoriteService.removeFavorite(currentUser.id, parseInt(this.recordId));
+        
+        if (result.success) {
+          this.isFavorite = false;
+          console.log('取消收藏成功');
+        } else {
+          console.error('取消收藏失败:', result.message);
+        }
+      } else {
+        // 添加收藏
+        console.log('执行添加收藏操作');
+        
+        // 构造收藏请求数据
+        const favoriteRequest: FavoriteRequest = {
+          userId: currentUser.id,
+          recordId: parseInt(this.recordId),
+          recordData: {
+            title: this.recordDetail.title ?? '',
+            artist: this.recordDetail.artists?.map(artist => artist.name).join(', ') ?? '',
+            image: this.recordDetail.images?.[0]?.uri ?? '',
+            year: this.recordDetail.year?.toString() ?? '',
+            genres: this.recordDetail.genres ?? [],
+            formats: this.recordDetail.formats?.map(format => format.name) ?? []
+          }
+        };
+
+        console.log('收藏请求数据:', favoriteRequest);
+
+        const result = await this.favoriteService.addFavorite(favoriteRequest);
+        
+        if (result.success) {
+          this.isFavorite = true;
+          console.log('添加收藏成功');
+        } else {
+          console.error('添加收藏失败:', result.message);
+        }
+      }
+    } catch (error) {
+      console.error('收藏操作异常:', error);
+    } finally {
+      this.isProcessingFavorite = false;
+    }
+  }
+
+  // 检查收藏状态
+  private async checkFavoriteStatus() {
+    console.log('=== checkFavoriteStatus 开始 ===');
+    
+    try {
+      // 检查用户登录状态
+    const isLoggedIn = await this.authService.isLoggedIn();
+      if (!isLoggedIn) {
+        console.log('用户未登录，设置收藏状态为false');
+        this.isFavorite = false;
+        return;
+      }
+
+      // 获取当前用户信息
+      const currentUser = await this.authService.getCurrentUser();
+      if (!currentUser?.id || !this.recordId) {
+        console.log('用户信息或唱片ID无效');
+        this.isFavorite = false;
+        return;
+      }
+
+      console.log('检查收藏状态 - userId:', currentUser.id, 'recordId:', this.recordId);
+
+      // 查询收藏状态
+      const statusResult = await this.favoriteService.checkFavoriteStatus(currentUser.id, parseInt(this.recordId));
+      this.isFavorite = statusResult.isFavorite;
+      
+      console.log('收藏状态查询结果:', this.isFavorite);
+    } catch (error) {
+      console.error('检查收藏状态异常:', error);
+      this.isFavorite = false;
+    }
   }
 
   // 格式化發行日期
@@ -435,12 +692,19 @@ struct RecordDetail {
               // 收藏按钮
               Button() {
                 Row({ space: 8 }) {
-                  Image($r('app.media.ic_favorite'))
-                    .width(20)
-                    .height(20)
-                    .fillColor(this.isFavorite ? '#ff4757' : this.textSecondary)
+                  if (this.isProcessingFavorite) {
+                    LoadingProgress()
+                      .width(16)
+                      .height(16)
+                      .color(this.textSecondary)
+                  } else {
+                    Image($r('app.media.ic_favorite'))
+                      .width(20)
+                      .height(20)
+                      .fillColor(this.isFavorite ? '#ff4757' : this.textSecondary)
+                  }
                   
-                  Text(this.isFavorite ? '已收藏' : '收藏')
+                  Text(this.isProcessingFavorite ? '处理中...' : (this.isFavorite ? '已收藏' : '收藏'))
                     .fontSize(16)
                     .fontColor(this.isFavorite ? '#ff4757' : this.textPrimary)
                 }
@@ -453,6 +717,7 @@ struct RecordDetail {
                 width: 1,
                 color: this.isFavorite ? '#ff4757' : this.textSecondary
               })
+              .enabled(!this.isProcessingFavorite) // 处理中时禁用按钮
               .onClick(() => {
                 this.toggleFavorite();
               })

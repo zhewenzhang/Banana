@@ -1,25 +1,15 @@
 import router from '@ohos.router';
-
-// 定义价值排行榜唱片接口
-interface ValueRankingRecord {
-  id: number;
-  rank: number;
-  title: string;
-  artist: string;
-  thumb?: string;
-  year?: string;
-  genre?: string[];
-  format?: string[];
-  estimatedValue: number; // 估值（美元）
-  priceChange: number; // 价格变化百分比
-}
+import { ValueRankingRecord } from '../models/RecordModels';
+import { DiscogsService } from '../services/DiscogsService';
+import { ApiConfig } from '../common/ApiConfig';
 
 @Entry
 @Component
 struct TimeMachine {
   @State currentTab: number = 2; // TimeMachine页面对应tab 2
-  @State topValueRecords: ValueRankingRecord[] = [];
-  @State isLoading: boolean = true;
+  @State private topValueRecords: ValueRankingRecord[] = [];
+  @State private isLoading: boolean = false;
+  @State private errorMessage: string = '';
 
   // 颜色主题
   private primaryColor: string = '#FFFFFF';
@@ -32,86 +22,75 @@ struct TimeMachine {
   private silverColor: string = '#C0C0C0';
   private bronzeColor: string = '#CD7F32';
 
-  aboutToAppear() {
+  aboutToAppear(): void {
     this.loadTopValueRecords();
   }
 
-  // 加载价值最高的唱片数据（模拟数据）
-  private loadTopValueRecords(): void {
-    // 模拟加载延迟
-    setTimeout(() => {
-      this.topValueRecords = this.generateMockValueRecords();
+  // 加载价值最高的唱片数据
+  private async loadTopValueRecords(): Promise<void> {
+    this.isLoading = true;
+    this.errorMessage = '';
+    
+    try {
+      // 检查是否配置了API Token
+      const hasApiToken: boolean = ApiConfig.hasDiscogsToken();
+      
+      if (!hasApiToken) {
+        this.errorMessage = '未配置 Discogs API Token，请先配置后使用';
+        console.error('未配置API Token');
+        return;
+      }
+
+      console.log('使用 Discogs API 获取高价值唱片数据');
+      const apiRecords = await DiscogsService.getValueRankingRecords(1, 50);
+      
+      if (apiRecords && apiRecords.length > 0) {
+        this.topValueRecords = apiRecords.map((record, index) => {
+          const mappedRecord: ValueRankingRecord = {
+            rank: index + 1,
+            id: parseInt(record.id) || index + 1, // 将字符串id转换为数字，如果转换失败则使用索引
+            title: record.title,
+            artist: record.artist,
+            year: record.year,
+            estimatedValue: this.generateEstimatedValue(index),
+            priceChange: (Math.random() - 0.5) * 20,
+            thumb: record.coverImage, // LocalRecord使用coverImage属性而不是thumb
+            genre: record.genre ? [record.genre] : undefined,
+            format: record.label ? [record.label] : undefined
+          };
+          return mappedRecord;
+        });
+        console.log('成功获取API数据:', this.topValueRecords.length, '条记录');
+      } else {
+        throw new Error('API返回数据为空');
+      }
+    } catch (error) {
+      console.error('加载价值排行榜数据失败:', error);
+      const errorMsg = error instanceof Error ? error.message : '未知错误';
+      this.errorMessage = `数据加载失败: ${errorMsg}，请检查网络连接或API配置`;
+      this.topValueRecords = []; // 清空数据
+    } finally {
       this.isLoading = false;
-    }, 1000);
+    }
   }
 
-  // 生成模拟的高价值唱片数据
-  private generateMockValueRecords(): ValueRankingRecord[] {
-    const mockRecords: ValueRankingRecord[] = [
-      {
-        id: 1, rank: 1, title: 'The Velvet Underground & Nico', artist: 'The Velvet Underground & Nico',
-        thumb: '', year: '1967', genre: ['Rock', 'Art Rock'],
-        format: ['Vinyl', 'LP'], estimatedValue: 25000, priceChange: 15.2
-      },
-      {
-        id: 2, rank: 2, title: 'Led Zeppelin', artist: 'Led Zeppelin',
-        thumb: '', year: '1969', genre: ['Rock', 'Hard Rock'],
-        format: ['Vinyl', 'LP'], estimatedValue: 18500, priceChange: 8.7
-      },
-      {
-        id: 3, rank: 3, title: 'Please Please Me', artist: 'The Beatles',
-        thumb: '', year: '1963', genre: ['Pop', 'Rock'],
-        format: ['Vinyl', 'LP'], estimatedValue: 15000, priceChange: -2.1
-      },
-      {
-        id: 4, rank: 4, title: 'The Freewheelin\' Bob Dylan', artist: 'Bob Dylan',
-        thumb: '', year: '1963', genre: ['Folk', 'Rock'],
-        format: ['Vinyl', 'LP'], estimatedValue: 12800, priceChange: 12.3
-      },
-      {
-        id: 5, rank: 5, title: 'My Generation', artist: 'The Who',
-        thumb: '', year: '1965', genre: ['Rock', 'Mod'],
-        format: ['Vinyl', 'LP'], estimatedValue: 11200, priceChange: 5.9
-      }
-    ];
-
-    // 定义专辑数据接口
-    interface AlbumData {
-      title: string;
-      artist: string;
+  // 生成估计价值（基於排名）
+  private generateEstimatedValue(index: number): number {
+    // 为Top50提供更丰富的价值分布
+    if (index < 5) {
+      const topValues: number[] = [25000, 18500, 15000, 12800, 11200];
+      return topValues[index];
+    } else if (index < 10) {
+      return 10000 - (index - 5) * 800; // 10000-6600
+    } else if (index < 20) {
+      return 6000 - (index - 10) * 300; // 6000-3000
+    } else if (index < 30) {
+      return 3000 - (index - 20) * 100; // 3000-2000
+    } else if (index < 40) {
+      return 2000 - (index - 30) * 50; // 2000-1500
+    } else {
+      return 1500 - (index - 40) * 30; // 1500-1200
     }
-
-    // 使用一些真实的专辑名称和艺术家名称作为示例
-    const albumData: AlbumData[] = [
-      { title: "Pet Sounds", artist: "The Beach Boys" },
-      { title: "Revolver", artist: "The Beatles" },
-      { title: "Kind of Blue", artist: "Miles Davis" },
-      { title: "The Dark Side of the Moon", artist: "Pink Floyd" },
-      { title: "Abbey Road", artist: "The Beatles" },
-      { title: "Led Zeppelin IV", artist: "Led Zeppelin" },
-      { title: "Thriller", artist: "Michael Jackson" },
-      { title: "Nevermind", artist: "Nirvana" },
-      { title: "OK Computer", artist: "Radiohead" }
-    ];
-
-    // 生成更多数据到50名
-    for (let i = 6; i <= 50; i++) {
-      const albumInfo = albumData[(i - 6) % albumData.length];
-      mockRecords.push({
-        id: i,
-        rank: i,
-        title: `${albumInfo.title} ${i > 15 ? `(Rare Edition ${i})` : ''}`,
-        artist: albumInfo.artist,
-        thumb: '', // 暂时设为空，使用占位符
-        year: `${1960 + Math.floor(Math.random() * 40)}`,
-        genre: [['Rock'], ['Pop'], ['Jazz'], ['Blues'], ['Electronic']][Math.floor(Math.random() * 5)],
-        format: [['Vinyl'], ['LP'], ['EP'], ['7"']][Math.floor(Math.random() * 4)],
-        estimatedValue: Math.floor(10000 - (i * 150) + Math.random() * 1000),
-        priceChange: (Math.random() - 0.5) * 20
-      });
-    }
-
-    return mockRecords;
   }
 
   // 获取排名颜色
@@ -140,6 +119,11 @@ struct TimeMachine {
     });
   }
 
+  // 刷新數據
+  private refreshData(): void {
+    this.loadTopValueRecords();
+  }
+
   build() {
     Column() {
       // 顶部标题栏
@@ -152,7 +136,7 @@ struct TimeMachine {
             router.back();
           })
 
-        Text('价值排行榜')
+        Text('价值排行榜 Top50')
           .fontSize(20)
           .fontWeight(FontWeight.Bold)
           .fontColor(this.textPrimary)
@@ -189,7 +173,7 @@ struct TimeMachine {
       } else {
         // 排行榜内容
         Column() {
-          // 排行榜标题
+          // 排行榜标题 - 移到顶部
           Row() {
             Text('目前价值最高的唱片')
               .fontSize(18)
@@ -205,9 +189,19 @@ struct TimeMachine {
               .margin({ left: 8 })
           }
           .width('100%')
-          .padding({ left: 16, right: 16, top: 16, bottom: 8 })
+          .padding({ left: 16, right: 16, top: 16, bottom: 12 })
           .justifyContent(FlexAlign.Start)
           .alignItems(VerticalAlign.Center)
+
+          // 错误信息显示
+          if (this.errorMessage) {
+            Text(this.errorMessage)
+              .fontSize(12)
+              .fontColor('#FF6B6B')
+              .padding({ left: 16, right: 16, bottom: 8 })
+              .width('100%')
+              .textAlign(TextAlign.Start)
+          }
 
           // 排行榜列表
           Scroll() {
@@ -238,18 +232,18 @@ struct TimeMachine {
                       })
                   } else {
                     // 没有封面时显示占位符，保持布局一致
-                    Column()
-                      .width(60)
-                      .height(60)
-                      .borderRadius(6)
-                      .backgroundColor(this.cardBgColor)
-                      .justifyContent(FlexAlign.Center)
-                      .alignItems(HorizontalAlign.Center)
-                      .border({ width: 1, color: this.secondaryColor + '40' }) {
+                    Column() {
                       Text('♪')
                         .fontSize(24)
                         .fontColor(this.textSecondary)
                     }
+                    .width(60)
+                    .height(60)
+                    .borderRadius(6)
+                    .backgroundColor(this.cardBgColor)
+                    .justifyContent(FlexAlign.Center)
+                    .alignItems(HorizontalAlign.Center)
+                    .border({ width: 1, color: this.secondaryColor + '40' })
                   }
 
                   // 唱片信息
